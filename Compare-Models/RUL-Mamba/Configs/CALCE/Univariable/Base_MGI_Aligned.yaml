@@ -1,0 +1,45 @@
+dataset:
+  name: CALCE
+  input_mode: Univariable
+  battery_cache_path: Data/CALCE_data/CALCE_Data.npy
+  battery_list: [CS2_35, CS2_36, CS2_37, CS2_38]
+  start_points:
+    CS2_35: 200
+    CS2_36: 200
+    CS2_37: 300
+    CS2_38: 300
+  rated_capacity: 1.1
+
+window:
+  seq_len: 64
+  pred_len: 1
+
+train:
+  seeds: [7, 17, 27, 37, 47, 57, 67, 77, 87, 97]
+  validation_fraction: 0.15
+  max_epochs: 60
+  batch_size: 128
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  optimizer: adam
+  patience: 12
+  gradient_clip_val: 1.0
+  num_workers: 0
+
+runtime:
+  gpu_id: 0
+
+output:
+  outputs_dir: Outputs/CALCE/Univariable/RULMamba_MGI_Aligned
+  logs_dir: Logs/CALCE/Univariable/RULMamba_MGI_Aligned
+
+protocol:
+  held_out_battery: true
+  preprocessing: raw
+  validation: per_training_battery_tail
+  normalization: rul_mamba_train_only_minmax_input
+  normalization_scope: train_prefix
+  target: capacity_divided_by_rated_capacity
+  checkpoint_monitor: validation_mae
+  eol_threshold_ratio: 0.7
+  evaluation: mgi_dssm_final_symmetric_consecutive_eol

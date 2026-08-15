@@ -1,0 +1,50 @@
+dataset:
+  name: CALCE
+  input_mode: Univariable
+  battery_cache_path: ../../data/version3/CALCE data/CALCE_Data.npy
+  battery_list: [CS2_35, CS2_36, CS2_37, CS2_38]
+  start_points:
+    CS2_35: 200
+    CS2_36: 200
+    CS2_37: 300
+    CS2_38: 300
+  rated_capacity: 1.1
+
+window:
+  seq_len: 64
+  pred_len: 1
+
+train:
+  seeds: [7]
+  validation_fraction: 0.20
+  max_epochs: 200
+  # Keep the complete TJU training setting while auditing transfer to CALCE.
+  batch_size: 16
+  learning_rate: 0.0022
+  weight_decay: 0.0
+  optimizer: adam
+  patience: 20
+  early_stopping_min_delta: 0.00001
+  checkpoint_monitor: val_loss
+  gradient_clip_val: 0.2
+  shuffle_train: true
+  drop_last_train: true
+  num_workers: 0
+
+runtime:
+  gpu_id: 0
+
+output:
+  outputs_dir: ../../outputs/rulmamba_calce_parent_exact_config_raw
+  logs_dir: ../../outputs/rulmamba_calce_parent_exact_config_raw/_logs
+
+protocol:
+  held_out_battery: true
+  preprocessing: raw
+  validation: per_training_battery_tail_80_20
+  normalization: train_prefix_minmax
+  normalization_scope: train_prefix
+  target: capacity_divided_by_rated_capacity
+  checkpoint_monitor: validation_smape
+  eol_threshold_ratio: 0.7
+  evaluation: cumulative_cycle_greater_equal_start

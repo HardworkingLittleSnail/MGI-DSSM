@@ -1,0 +1,74 @@
+{
+  "protocol": "MGI-DSSM-aligned IC2ML RUL evaluation",
+  "task": "past_10_cycles_to_next_capacity_and_threshold_RUL",
+  "seed": 17,
+  "test_battery": "B0005",
+  "best_epoch": 10,
+  "best_validation_mae_ah": 0.02564503811299801,
+  "folds": [
+    {
+      "mae": 0.03737048541798311,
+      "rmse": 0.049831714992260696,
+      "r2": 0.8643797989761128,
+      "RUL_real": 75,
+      "RUL_pred": 75,
+      "AE": 0,
+      "RE": 0.0,
+      "direct_rul_mae_cycles": 23.414574364654158,
+      "direct_rul_rmse_cycles": 33.21417567617333,
+      "test_battery": "B0005",
+      "start_point": 50,
+      "num_windows": 119
+    },
+    {
+      "mae": 0.02628427804118455,
+      "rmse": 0.03358752618825214,
+      "r2": 0.885423284346082,
+      "RUL_real": 55,
+      "RUL_pred": 55,
+      "AE": 0,
+      "RE": 0.0,
+      "direct_rul_mae_cycles": 15.36152524659128,
+      "direct_rul_rmse_cycles": 22.59263594852994,
+      "test_battery": "B0005",
+      "start_point": 70,
+      "num_windows": 99
+    },
+    {
+      "mae": 0.021074805078627187,
+      "rmse": 0.028993340705442114,
+      "r2": 0.855625834935542,
+      "RUL_real": 35,
+      "RUL_pred": 35,
+      "AE": 0,
+      "RE": 0.0,
+      "direct_rul_mae_cycles": 8.301865604859364,
+      "direct_rul_rmse_cycles": 12.557961167615131,
+      "test_battery": "B0005",
+      "start_point": 90,
+      "num_windows": 79
+    }
+  ],
+  "config": {
+    "dataset": "nasa",
+    "output_root": "audit_stability",
+    "test_batteries": [
+      "B0005"
+    ],
+    "seeds": [
+      7,
+      17,
+      27
+    ],
+    "seq_len": 10,
+    "epochs": 300,
+    "batch_size": 128,
+    "hidden_dim": 256,
+    "learning_rate": 0.0001,
+    "validation_fraction": 0.15,
+    "patience": 50,
+    "voltage_start": 3.9,
+    "voltage_end": 4.0,
+    "feature_source": "10-point incremental charge-capacity curve over 3.9-4 V"
+  }
+}

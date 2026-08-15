@@ -1,0 +1,24 @@
+{
+  "document": {
+    "title": "SG-DiTs: A physics-informed diffusion-transformer hybrid framework for reliable battery RUL prediction",
+    "doi": "10.1016/j.est.2026.120479",
+    "source_pdf": "D:/class/相关文献/SG-DiTs.pdf",
+    "pages": 19,
+    "scope": "implementation-focused bilingual evidence map"
+  },
+  "blocks": [
+    {"id": "S001", "pdf_pages": [1], "topic": "abstract and overall framework"},
+    {"id": "S002", "pdf_pages": [3, 4, 5], "topic": "meaning of physics-informed inputs"},
+    {"id": "S003", "pdf_pages": [5, 6, 7], "topic": "twelve health indicators"},
+    {"id": "S004", "pdf_pages": [8], "topic": "forward diffusion"},
+    {"id": "S005", "pdf_pages": [8, 9], "topic": "reverse diffusion"},
+    {"id": "S006", "pdf_pages": [9, 10], "topic": "DiT and AdaLN architecture"},
+    {"id": "S007", "pdf_pages": [10], "topic": "noise RMSE and beta schedule"},
+    {"id": "S008", "pdf_pages": [17], "topic": "rolling window prediction"},
+    {"id": "S009", "pdf_pages": [17, 18], "topic": "reported hyperparameters"}
+  ],
+  "figures": [
+    {"id": "Fig10", "pdf_pages": [9, 10], "asset": "assets/fig10.png", "linked_block": "S006"}
+  ]
+}
+

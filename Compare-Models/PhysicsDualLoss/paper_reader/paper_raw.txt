@@ -1,0 +1,947 @@
+                                                                              Energy 346 (2026) 140288
+
+
+                                                                     Contents lists available at ScienceDirect
+
+
+                                                                                       Energy
+                                                           journal homepage: www.elsevier.com/locate/energy
+
+
+
+
+A physics-informed deep learning framework for remaining useful life
+prediction of lithium-ion batteries with feature subset construction
+Hanlin Cheng a,b , Lifeng Zhang a,b,*
+a
+    Yanzhao Electric Power Laboratory of North China Electric Power University, Baoding, 071003, China
+b
+    Department of Automation, North China Electric Power University, Baoding, 071003, China
+
+
+
+
+A R T I C L E I N F O                                       A B S T R A C T
+
+Keywords:                                                   Addressing critical challenges in lithium-ion battery (LIBs) remaining useful life (RUL) prediction, namely weak
+Lithium-ion battery                                         feature correlations, limited model generalizability, and insufficient physical consistency, this study proposes a
+Remaining useful life                                       novel deep learning framework that integrates optimal feature subset construction and physics-informed con­
+Feature subset construction
+                                                            straints. To address inherent multi-scale variations and noise in raw health indicator sequences, Seasonal-Trend
+Physics-informed neural network
+Deep learning
+                                                            decomposition using Loess (STL) is employed, extracting structured temporal information from trend, seasonal,
+                                                            and residual components. This process enables multivariate feature analysis. Subsequently, a Wrapper-based
+                                                            feature selection algorithm identifies, reconstructs, and preserves the most predictive subset of health fea­
+                                                            tures, thereby strengthening feature relevance and capturing crucial degradation factors. For the model archi­
+                                                            tecture, this paper introduces MSTEA-Net, which incorporates multi-scale temporal convolutional encoding and
+                                                            a cross-variable attention mechanism. This design comprehensively captures dynamic cross-feature dependencies
+                                                            and long-term temporal evolution patterns. Critically, to enhance physical plausibility and interpretability, a
+                                                            triple-composite loss function, integrating data-driven prediction errors with dual physics-based regularization
+                                                            terms, is formulated and applied during model training. Extensive experimental evaluations on the publicly
+                                                            accessible CALCE and TJU datasets demonstrate the superior performance of the proposed framework. It
+                                                            significantly outperforms mainstream benchmarks in both RUL prediction accuracy and end-of-life (EOL) cycle
+                                                            localization precision. Specifically, the method achieves reductions in MAE of 5.56% and 11.8% on the
+                                                            respective datasets, while consistently constraining EOL localization errors within a stringent threshold of two
+                                                            cycles.
+
+
+
+
+1. Introduction                                                                                  interphase (SEI) layer due to the accumulation of charge-discharge cy­
+                                                                                                 cles. These processes result in gradual performance decay, manifesting
+    In recent years, with continuous breakthroughs in renewable energy                           macroscopically as continuous capacity fade, which can compromise
+technologies and the rapid global adoption of electric vehicles, lithium-                        system safety and stability [6–8]. Therefore, developing accurate LIBs
+ion batteries (LIBs) have received unprecedented attention as the core                           capacity prediction models holds significant practical and application
+power source supporting their operation [1,2]. Due to their superior                             value for enabling intelligent battery management, assessing opera­
+energy density, cycle life, and charge-discharge efficiency, LIBs are not                        tional states, and providing early warning of potential failures [9].
+only widely employed in electric vehicles but also extensively deployed                              Remaining useful life (RUL), a critical LIBs state of health (SOH)
+in various energy storage systems, providing a crucial guarantee for the                         indicator, quantifies available charge-discharge cycles from current
+stable integration of renewable energy sources, such as wind and solar                           state to end-of-life (EOL) threshold [10]. Accurate RUL prediction re­
+power. Consequently, LIBs play a pivotal role in advancing the global                            mains challenging due to the complex internal dynamics of LIBs and
+energy transition and achieving low-carbon, sustainable development                              their susceptibility to external environmental conditions. Currently,
+goals [3–5]. However, during long-term operation, LIBs undergo elec­                             mainstream RUL prediction approaches are primarily categorized into
+trochemical degradation processes including active lithium loss, elec­                           model-based methods, data-driven methods, and hybrid methods [11,
+trode structure deterioration, and growth of the solid electrolyte                               12].
+
+
+
+    * Corresponding author. Yanzhao Electric Power Laboratory of North China Electric Power University, Baoding, 071003, China.
+      E-mail address: lifeng.zhang@ncepu.edu.cn (L. Zhang).
+
+https://doi.org/10.1016/j.energy.2026.140288
+Received 19 October 2025; Received in revised form 9 January 2026; Accepted 30 January 2026
+Available online 31 January 2026
+0360-5442/© 2026 Elsevier Ltd. All rights are reserved, including those for text and data mining, AI training, and similar technologies.
+H. Cheng and L. Zhang                                                                                                                Energy 346 (2026) 140288
+
+
+    Model-based approaches predict the RUL of LIBs by simulating in­              et al. [30] generated bimodal images by fusing raw curves with Gramian
+ternal degradation mechanisms and operational behaviors through                   angular field (GAF) representations and designed a bimodal fusion
+physical or electrochemical modeling [13]. These methods comprise                 regression network (BFRN) for RUL prediction.
+three primary categories: electrochemical models (EMs), equivalent                     Physics-informed neural networks (PINNs), a hybrid approach
+circuit models (ECMs), and empirical/statistical methods [14]. Firstly,           combining deep learning prediction model with physical knowledge,
+EMs characterize the internal reaction kinetics and mass transport                have emerged as a frontier methodology in LIBs health management,
+mechanisms of batteries, offering high physical interpretability, but they        integrating physical interpretability with predictive accuracy in sce­
+suffer from modeling complexity and significant computational cost.               narios where standalone model-based or data-driven approaches exhibit
+Gao et al. [15] proposed a revised single particle model (RSPM) and a             limitations [31]. Current implementations encompass three primary
+fast computation P2D model (FCP2D), which simplify electrode re­                  strategies: utilizing physical knowledge for feature engineering,
+actions and particle distributions, respectively, and optimize parameters         embedding physical principles into network architectures, and imposing
+using polynomial and shape functions to balance simulation efficiency             physical laws as training constraints [32]. For instance, Ma et al. [33]
+and prediction accuracy. El-Dalahmeh et al. [16] developed a                      developed an interpretable voltage-capacity model that extracted
+physics-informed smooth particle filter (SPF) based on SPM, which ex­             degradation parameters from charging data to train deep neural net­
+tracts three key degradation parameters to achieve mechanism-level                works (DNNs) for capacity prediction. Zhang et al. [34] proposed an
+modeling of capacity fade. Secondly, ECMs simulate battery behavior               electrochemical-informed generative model reconstructing degradation
+using electrical components, featuring simple structures and easy                 states by fusing real/synthetic data for physics-informed hybrid neural
+implementation; however, their parameters lack clear physical meaning,            network (PIHNN)-based RUL prediction. Tu et al. [35] integrated EMs
+and their long-term prediction accuracy is limited. Lyu et al. [17] treated       and ECMs with feedforward neural networks (FNNs) to inject physical
+capacity degradation as a state variable and utilized the internal pa­            states into RUL estimation. Feng et al. [36] designed a parallel branch
+rameters of the Thevenin model as inputs to construct a dynamic                   structure with dual physical constraints and triple-pathway enhanced
+equivalent circuit degradation model. Chu et al. [18] proposed a                  shuffleNet, optimized via a physics-regularized triple-loss function. Ye
+nonlinear ECM (NL-ECM) based on a block-oriented structure, intro­                et al. [37] further translated the monotonic relationship between in­
+ducing a Hammerstein-CARMA framework that integrates dynamic and                  cremental capacity (IC) curve peaks and SOH into FNN training con­
+static nonlinear modules to capture the dynamic characteristics of LIBs.          straints to enhance robustness. In summary, current research primarily
+Finally, empirical or statistical models rely on degradation data to              focuses on enhancing data input features with physical information and
+establish empirical relationships or statistical distribution models. While       incorporating physics-based constraint losses during model training,
+they offer flexible modeling, their performance is highly dependent on            thereby achieving a balance between predictive performance and
+data quality and the specific application context. Notably, Chen et al.           physical interpretability.
+[19] enhanced Wiener processes with neural representations and                         Existing deep learning prediction models (e.g., LSTM, TCN, Trans­
+meta-learning for cross-cell robustness. Overall, model-based ap­                 former) have made progress in fitting capacity degradation trends, but
+proaches provide both physical interpretability and verifiability; how­           they still exhibit two major limitations. First, most models perform ca­
+ever, their computational feasibility and generalizability are often              pacity modeling on a single temporal scale, making it difficult to
+limited under complex operating conditions, which constrain their                 simultaneously capture both short-term fluctuations and long-term
+widespread application.                                                           degradation patterns, which often limits their performance under com­
+    Data-driven approaches utilize historical operational data of LIBs to         plex degradation scenarios. Second, when multiple health features are
+extract representative degradation features and construct a mapping               used as inputs, the coupling relationships among different features are
+between battery degradation behavior and life indicators, thereby                 not effectively modeled, leading to prediction drift and error accumu­
+enabling RUL prediction [20]. Eliminating the need for complex phys­              lation during long-horizon extrapolation or near the EOL stage.
+ical modeling, these methods demonstrate strong adaptability and                  Furthermore, this paper compares three state-of-the-art models. Li et al.
+computational efficiency. They can be broadly classified into two tech­           [38] proposed a TCN-GRU-DNN and dual attention mechanism model
+nical paradigms: traditional machine learning and deep learning meth­             (denoted as TGDDA in this paper) to highlight critical time steps and key
+odologies. Traditional machine learning techniques—including extreme              features. Huang et al. [39] proposed RUL-Mamba based on a Mamba
+learning machine (ELM) [21], relevance vector machine (RVM) [22],                 selective state-space structure, which improves long-sequence modeling
+support vector regression (SVR) [23], and Gaussian process regression             and inference efficiency. Yu et al. [40] proposed a parallel LTCN-PHA
+(GPR) [24]—excel at feature engineering and modeling with small                   network capture the battery capacity decay trend and capacity regen­
+datasets. However, they are limited in their ability to model the                 eration phenomena. However, both still suffer from insufficient
+nonlinear and complex temporal characteristics of batteries, such as              multi-scale modeling capability.
+capacity regeneration, making it challenging to achieve high-accuracy                  Based on the above analysis, existing methods have achieved sig­
+predictions under complex degradation scenarios. In recent years,                 nificant advances in LIBs RUL prediction, but three critical limitations
+with the rapid development of neural networks, deep learning meth­                still persist.
+ods—owing to their powerful nonlinear modeling and automatic feature
+extraction capabilities—have gradually become the mainstream in this                (1) The inherent multi-scale periodic features of capacity degrada­
+field [25]. Yang [26] developed a hybrid 3D/2D convolutional neural                     tion sequences remain inadequately extracted and utilized, con­
+network (CNN) model leveraging multimodal charging features for joint                   straining models' ability to capture complex temporal
+early-life performance and RUL estimation. Li et al. [27] developed a                   degradation patterns;
+triple parallel attention network (TPANet) that integrates CNN with                 (2) Most deep learning models primarily focus on empirical data
+attention mechanisms, employing a parallel architecture to enhance the                  fitting while neglecting the underlying degradation mechanisms
+modeling of capacity regeneration phenomena and long-term de­                           and physical consistency constraints, resulting in predictions
+pendencies. To further address nonlinear degradation, advanced studies                  with limited interpretability and stability.
+incorporate signal preprocessing for stable feature extraction [28]. For            (3) Although advanced models have improved temporal modeling
+example, Li et al. [29] applied northern goshawk optimization                           efficiency, they still suffer from insufficient joint modeling of
+(NGO)-variational mode decomposition (VMD) to decompose capacity                        multi-scale degradation structures and deep cross-feature in­
+sequences adaptively, modeling low- and high-frequency components                       teractions, leading to limited robustness in complex late-stage
+via CNN-bidirectional long short-term memory (BiLSTM) and temporal                      degradation scenarios.
+convolutional network (TCN)-attention architectures, respectively. Cai
+
+                                                                              2
+H. Cheng and L. Zhang                                                                                                                 Energy 346 (2026) 140288
+
+
+    To address the above challenges, this paper proposes a multi-scale             Section 5 provides the conclusion.
+temporal encoding attention network (MSTEA-Net), which constructs
+a unified multi-scale temporal modeling framework for long-term                    2. Datasets collection
+degradation processes. This model employs a multi-scale temporal
+encoding module to simultaneously extract short-term fluctuations,                     This study utilizes two publicly accessible LIB aging datasets. The
+medium-term transitional features, and long-term degradation trends,               capacity degradation curves of batteries from both datasets are pre­
+thereby providing stronger capability for temporal structure analysis              sented in Fig. 1, while Table 1 documents detailed testing protocols
+compared with traditional models. Meanwhile, a cross-variable atten­               implemented during their aging experiments.
+tion mechanism is incorporated to capture the degradation coupling                     The first dataset, sourced from the publicly available repository of
+relationships among different health features, further enhancing feature           the Center for Advanced Lifecycle Engineering (hereafter abbreviated as
+interaction representation. In addition, positional encoding and tem­              CALCE dataset) [41], comprises four CS2-series batteries labeled #35,
+poral embeddings are integrated to maintain the continuity of capacity             #36, #37, and #38. These cells feature a nominal capacity of 1.1 Ah and
+evolution and effectively mitigate prediction bias accumulation over               underwent aging tests through charge-discharge cycles at 1 ◦ C. Charging
+time. Furthermore, to enhance interpretability and ensure physical                 employed a standard constant-current constant-voltage (CC-CV) proto­
+consistency, this study introduces a dual physics-informed constraint.             col: initial constant-current (CC) phase at 0.55 A until reaching 4.2 V,
+Unlike existing PINN approaches that impose a single constraint or treat           followed by constant-voltage (CV) phase until the current dropped
+physical laws as independent training terms, the dual constraint simul­            below 0.05 A. Discharge was performed at a constant current of 1.1 A
+taneously regulates predicted capacity values (static) and corresponding           until the voltage decreased to 2.7 V.
+degradation rates (dynamic). It is jointly optimized with MSTEA-Net                    The second dataset, derived from Tongji University's large-scale
+prediction error during training, enabling synergistic coupling of data-           cycling repository for NCA, NCM, and hybrid NCM + NCA batteries
+driven learning and physical prior knowledge. This integration ensures             (hereafter abbreviated as TJU dataset) [42], incorporates three
+physically consistent predictions, improves generalization across                  CY25-05_1-series hybrid NCM + NCA cells designated #1, #2, and #3.
+degradation stages, and does not increase inference complexity, pre­               With a nominal capacity of 2.5 Ah, these batteries underwent cycling
+serving practical feasibility.                                                     experiments at 25 ◦ C. Consistently, charging followed a CC-CV scheme:
+    Ultimately, a physics-informed deep learning framework for                     CC phase at 1.25 A until 4.2 V, transitioning to CV until current fell
+remaining useful life prediction of lithium-ion batteries with feature             below 0.125 A. Discharge occurred at 2.5 A constant current until cell
+subset construction is established. The main innovations and contribu­             voltage reached 2.5 V.
+tions of this work are summarized as follows.
+                                                                                   3. Methodology
+   (1) A STL-based feature selection framework that automatically
+       identifies optimal capacity sequence periods and constructs                     This section comprehensively delineates the proposed methodology
+       optimal feature subset using a novel Wrapper method;                        for RUL prediction in LIBs, comprising four primary stages as illustrated
+   (2) MSTEA-Net, which extracts local and global degradation features             in Fig. 2: (1) Extraction of multidimensional health indicators relevant
+       via a multi-scale temporal encoding module and models feature               to capacity degradation from LIB aging datasets; (2) Construction of an
+       interactions with a cross-variable attention mechanism for ac­              optimal capacity-correlated health feature subset; (3) Implementation of
+       curate RUL prediction;                                                      RUL prediction via the MSTEA-Net; (4) Dynamic optimization of
+   (3) A triple-composite loss function with dual physics-informed                 MSTEA-Net through a triple composite loss function to enhance pre­
+       constraints, using the Arrhenius model and its differential form            dictive performance.
+       as static and dynamic regularization for optimize training;
+   (4) Experimental validation on CALCE and TJU datasets bench­
+       marking MSTEA-Net against mainstream baselines and advanced                 3.1. Health feature extraction
+       models, with systematic ablation studies demonstrating the
+       effectiveness of each main proposed module.                                    In the domain of LIBs RUL prediction, health features (HFs) refer to
+                                                                                   quantifiable parameters or statistical descriptors that effectively char­
+   The remainder of this article is structured as follows: Section 2 details       acterize capacity degradation states and health conditions. The selection
+the dataset sources, Section 3 elaborates on the proposed methodology,             of HFs directly governs model prediction accuracy [43]. These features
+Section 4 presents experimental arrangement and results analysis, and              may originate either from raw measurements or be extracted through
+                                                                                   signal processing and decomposition techniques. Judicious HF selection
+
+
+
+
+                                  Fig. 1. Battery capacity decay curves on two datasets. (a) CALCE dataset, (b) TJU dataset.
+
+                                                                               3
+H. Cheng and L. Zhang                                                                                                                              Energy 346 (2026) 140288
+
+
+Table 1
+Battery aging test conditions for two datasets.
+  Datasets      Battery number      Rated capacity        Temperature      Charge/discharge constant current    Charge/discharge cut-off voltage         EOL/Total Cycles
+
+  CALCE         CS2_35              1.1Ah                 1 C
+                                                            ◦
+                                                                           0.55A/1.1A                           4.2V/2.7V                                641/882
+                CS2_36              1.1Ah                 1 ◦C             0.55A/1.1A                           4.2V/2.7V                                646/936
+                CS2_37              1.1Ah                 1 ◦C             0.55A/1.1A                           4.2V/2.7V                                717/972
+                CS2_38              1.1Ah                 1 ◦C             0.55A/1.1A                           4.2V/2.7V                                754/996
+  TJU           CY25-05_1#1         2.5Ah                 25 ◦ C           1.25A/2.5A                           4.2V/2.5V                                824/932
+                CY25-05_1#2         2.5Ah                 25 ◦ C           1.25A/2.5A                           4.2V/2.5V                                808/932
+                CY25-05_1#3         2.5Ah                 25 ◦ C           1.25A/2.5A                           4.2V/2.5V                                835/989
+
+
+
+
+                                                     Fig. 2. The flowchart of the proposed RUL prediction method.
+
+
+and integration not only mitigate redundant information and noise                       properties, illustrated in step 1 of Fig. 2. The temporal features comprise
+interference but also maximally preserve critical data strongly corre­                  constant current charging time (CCCT), constant voltage charging time
+lated with battery degradation trends, thereby enhancing the stability                  (CVCT), and constant current discharge time (CCDT). Internal resistance
+and accuracy of RUL prediction.                                                         metrics represent electrochemical characteristics. Notably, owing to the
+    In this study, four categories of HFs are extracted from raw datasets               absence of direct resistance measurements in the TJU dataset, only the
+across two dimensions: temporal characteristics and electrochemical                     three temporal HFs are utilized as inputs for this specific subset.
+
+
+                                                                                   4
+H. Cheng and L. Zhang                                                                                                                            Energy 346 (2026) 140288
+
+
+3.2. Optimal feature subset construction                                                    ∑N− k (                 )( detrend     )
+                                                                                                 i=1   Yidetrend − Y Yi+k      − Y
+                                                                                 ACF(k) =              ∑N ( detrend       )2        , k = 1, 2, ..., kmax            (5)
+3.2.1. STL-based feature decomposition                                                                    i=1 Yi      − Y
+   Within the domain of time series analysis, STL constitutes a
+decomposition methodology grounded in locally weighted regression                where ACF(k) represents the autocorrelation coefficient at period k, with
+(Loess) [44]. Its core principle involves the progressive extraction of          k represents the candidate period, Yidetrend represents the detrended ca­
+variation components across distinct temporal scales through Loess               pacity series, Y represents the mean value of the detrended series, and
+techniques, decomposing the original time series into three constituent          kmax represents the maximum candidate period.
+elements: the long-term trend, the cyclic seasonal component, and the                Candidate periods are evaluated through cross-validation to quantify
+stochastic residual component, mathematically formulated as.                     the strength of seasonality and the smoothness of the trend. A composite
+Xi = Ti + Si + Ri                                                     (1)        score is computed for each candidate period to balance these dual
+                                                                                 criteria, thereby enabling the selection of the optimal period. The
+where Xi represents the original time series, Ti represents the trend            selected optimal period is subsequently implemented within the STL
+component series, Si represents the seasonal component series, and Ri            decomposition framework. Concurrently, a dynamic weighting mecha­
+represents the residual series.                                                  nism is introduced to enhance robustness. This mechanism proportion­
+    Specifically, the algorithm employs an iterative refinement proced­          ally modulates the weights assigned to seasonality and trend
+ure. Initially, it applies Loess smoothing to the seasonality-adjusted se­       components based on the trend fluctuation ratio intrinsic to the time
+ries to estimate the trend component:                                            series:
+                                                                                                     (                          )
+Ti = Loess(Xi − Si , spant )                                          (2)                      σS          1 ∑N
+                                                                                 Score(pi ) = α + β 1 −           |Ti − Ti− 1 |                        (6)
+                                                                                               σR          N i=2
+where spant represents the window width parameter for trend
+smoothing.                                                                       where Score(pi) represents the composite score for candidate period pi, α
+   Subsequently, the Seasonal component is estimated from the                    and β represents the weights for trend and seasonality respectively, σS
+detrended series using a periodic window approach:                               represents the standard deviation of the seasonal component, σ R repre­
+Si = Loess(Xi − Ti , spans , period = p)                              (3)        sents the standard deviation of the residual component, N represents the
+                                                                                 total length of the time series, Ti-Ti-1 represents the difference between
+where spans represents the parameter controlling the seasonal smooth­            adjacent trend items.
+ing intensity, and p represents the periodicity parameter for seasonal
+decomposition.                                                                   3.2.3. Wrapper-based feature selection
+    The residual term, comprising irregular fluctuations and noise, is               To enhance the predictive relevance between input features and
+ultimately derived as follows:                                                   target variables, a wrapper-based feature selection strategy is developed
+                                                                                 by integrating random forest feature importance, lasso regression coef­
+Ri = Xi − Ti − Si                                                     (4)
+                                                                                 ficient sparsification, and recursive feature elimination with cross-
+                                                                                 validation (RFECV). Unlike correlation- or statistic-based filter
+In the context of LIBs RUL prediction, applying STL to feature engi­
+                                                                                 methods, the wrapper-based strategy reformulates feature selection as a
+neering enables the effective decomposition of the health feature se­
+                                                                                 search-evaluation process, wherein specified models undergo iterative
+quences into three mutually independent subsequences: long-term
+                                                                                 training on diverse feature subsets and optimal combinations are
+degradation trend, high-frequency cycle-induced periodic fluctuations,
+                                                                                 determined through comparative performance assessment. These yields
+and stochastic disturbance components. Correspondingly, these three
+                                                                                 feature sets that are better aligned with the actual requirements of
+components characterize: (1) the monotonically decreasing overall ca­
+                                                                                 predictive modeling [45]. The proposed strategy comprises four
+pacity degradation trajectory; (2) the periodic capacity variations driven
+                                                                                 sequential stages.
+by charge-discharge cycles and operational condition changes; and (3)
+the random fluctuations and anomalous degradation events caused by
+measurement errors, capacity recovery, and other non-stationary be­                (1) A random forest regressor is trained on the feature matrix X ∈
+haviors. It can be seen that the decomposition structure of STL is highly              Rn×d and label vector y ∈ Rn to evaluate the importance of each
+consistent with the battery degradation mechanism, requires no                         candidate feature. The number of trees is set to 100, while the
+assumption of signal stationarity, involves few parameters, and offers                 maximum tree depth is left unconstrained, and the minimum
+strong interpretability, making it well suited as a strategy for health                samples for split and leaf nodes are set to 2 and 1, respectively.
+feature selection. After STL processing, yielding 12 subsequences for the              Feature importance scores are calculated using the mean
+four CALCE features and 9 subsequences for the three TJU features.                     decrease in impurity (MDI) criterion, and the top six features are
+                                                                                       selected to form the subset SRF:
+3.2.2. Adaptive decomposition cycle detection                                                    1∑T ∑       Nm
+    The effectiveness of STL decomposition is highly dependent on the                   IjRF =                  ⋅Δim                                                 (7)
+                                                                                                 T t=1 m∈Mj,t N
+choice of the seasonal period. However, since the periodicity of capacity
+degradation in LIBs is generally non-stationary and varies across cells,               where j represents the feature index, T represents the number of
+conventional fixed-period STL decomposition often proves inadequate                    trees in the forest, Mj,t represents the set of all nodes in the t tree
+for fully capturing the underlying cyclical dynamics. To address this                  where feature j is used, Nm/N represents the proportion of sam­
+limitation, an adaptive period detection methodology is proposed. This                 ples reaching node m, and Δim represents the decrease in impurity
+approach initiates with preliminary STL decomposition to extract the                   resulting from the split at node m. The most critical hyper­
+trend component, followed by detrending of the capacity sequence.                      parameter is the number of trees, which is determined through
+Subsequently, autocorrelation function (ACF) analysis identifies candi­                experiments with different values by balancing feature selection
+date periods by localizing ACF peaks, while augmeting the candidate set                stability and computational efficiency.
+with empirically predefined periodic intervals to enhance robustness.              (2) After applying standardscaler normalization to the feature matrix
+The calculation process is as follows:                                                 ̃ feature sparsification is performed using lasso regression:
+                                                                                       X,
+
+
+
+                                                                             5
+H. Cheng and L. Zhang                                                                                                                        Energy 346 (2026) 140288
+
+                     {                     }
+                       1                                                                 3.3.1. Input projection
+        β(λ) = argmin
+        ̂                     ̂ 2 + λ‖β‖
+                         ‖y − Xβ‖                                              (8)
+                   β  2n          2      1                                                  After feature selection, the optimal health-related feature subset can
+                                                                                         be represented as:
+       where ̂  β(λ) represents the optimal regression coefficient vector                    [                      ]T
+                                                                                         X = X(1) , X(2) , ..., X(L) ∈ RB×L×D                                 (11)
+       obtained under the regularization parameter λ, n represents the
+       number of samples, y represents the target variable vector, β
+                                                                                         where B represents the batch size, L represents the sequence length, D
+       represents the regression coefficient vector. Here, the regulari­
+                                                                                         represents the input feature dimension.
+       zation parameter λ is automatically selected via cross-validation
+                                                                                             Since discrepancies in dimensionality and numerical scales may exist
+       using LassoCV, which avoids subjective bias and ensures stable
+                                                                                         among different features, directly feeding them into a deep temporal
+       performance. Finally, the features corresponding to non-zero
+                                                                                         network can result in unstable gradient propagation and reduced feature
+       coefficients β∕=0 are retained to form the subset SLASSO.
+                                                                                         learning efficiency. Therefore, before entering the temporal encoding
+   (3) By integrating the results of random forest and lasso regression, a
+                                                                                         module, the input features are projected into a unified high-dimensional
+       fused feature set is constructed through set operations:
+                                                                                         embedding space to enhance the model's representational capacity and
+                {
+                  SRF ∩ SLASSO , if|SRF − SLASSO | ≥ Mmin                                ensure cross-feature comparability in terms of scale.
+       Svoted =                                                       (9)
+                  SRF ∪ SLASSO , otherwise                                                   In this study, a fully connected layer is employed as the input pro­
+                                                                                         jection operator, mapping the input feature dimension D to the internal
+       where Mmin represents the predefined minimum threshold for the                    representation dimension Din. The mapping process is defined as:
+       number of selected features. Mmin is treated as a tunable hyper­
+       parameter, and its value was determined through experimental                      H0 = XWp + bp                                                          (12)
+       analysis with 3 was found to be the optimal choice.
+                                                                                         where H0 ∈ RB×L×Din represents the temporally embedded feature rep­
+   (4) Finally, RFECV is performed on the voted feature subset Svoted.
+                                                                                         resentation, WP ∈ RD×Din represents the trainable weight matrix, and
+       The objective is to iteratively refine the feature subset by elimi­
+       nating redundant variables, thereby yielding a robust and effi­                   bP ∈ RDin represents the trainable bias vector.
+       cient optimal feature set. The optimization problem can be                            Beyond a mere dimensional expansion, the projection layer adap­
+       formulated as:                                                                    tively redistributes and compresses feature information by learning the
+                                    (    )                                               weight matrix WP, thereby completing an implicit reallocation of in­
+       S* = arg    max     CVScore fS , y                             (10)               formation before feeding it into the temporal encoding module.
+                  S⊆Xvoted ,|S|≥Mmin
+
+
+                                                                                         3.3.2. Temporal encoding module
+          Through the aforementioned hybrid feature subset selection                         Upon completing the unified projection of input features, the model
+        procedure, the final optimal feature set is determined for subse­                next aims to capture the temporal dependencies underlying LIBs’ ca­
+        quent model training, providing low-noise and highly relevant                    pacity degradation, which encompass both short-term local dynamics
+        inputs. Table 2 summarizes the optimal health feature subsets                    (charge–discharge characteristics within a single cycle) and long-term
+        identified for each cell, while the complete process of optimal                  trends (capacity decay over hundreds of cycles). Relying on feature
+        feature subset construction is illustrated in step 2 of Fig. 2.                  extraction at a single temporal scale risks omitting critical information.
+                                                                                         To address this, the temporal encoding module in MSTEA-Net is
+3.3. MSTEA-net architecture                                                              designed to integrate LSTM with multi-scale convolution mechanisms
+                                                                                         [46], thereby enabling comprehensive modeling of both local and global
+    To achieve high-accuracy prediction of LIBs’ capacity degradation,                   temporal patterns.
+this study develops the MSTEA-Net framework, which integrates tem­                           The LSTM layer, controlled via input, forget, and output gates, re­
+poral feature extraction, multi-scale pattern capturing, inter-variable                  tains state information across multiple time steps, making it particularly
+interaction modeling, and regression prediction. As illustrated in step                  suitable for capturing the slowly accumulating degradation trends dur­
+3 of Fig. 2, MSTEA-Net consists of four functional modules organized                     ing battery aging. Accordingly, long-term dependencies within the
+sequentially from input to output: (1) Input projection, which projects                  projected feature sequence are initially captured as:
+the selected optimal feature subset into a unified high-dimensional
+                                                                                         Hlstm = LSTM(H0 )                                                      (13)
+representation space; (2) Temporal encoding module, designed to
+extract dynamic capacity-evolution patterns at multiple scales; (3)
+                                                                                         where Hlstm ∈ RB×L×Dhidden represents the hidden states at each time step,
+Cross-variable attention block, which captures correlations among
+                                                                                         Dhidden represents the hidden dimension of the LSTM.
+different feature dimensions; and (4) Prediction head, which maps the
+                                                                                             While LSTM effectively captures long-term dependencies, it is less
+encoded high-level representations to the predicted capacity values. The
+                                                                                         efficient in modeling rapidly changing local patterns. To complement
+design principles of each module are detailed in the following sections.
+                                                                                         this, a multi-scale convolution encoder is incorporated to extract local
+                                                                                         patterns over short, medium, and relatively long temporal ranges:
+                                                                                                (          (     ))
+                                                                                         Zs = σ Conv1Dk=s HTlstm , s = 1, 3, 7                                (14)
+Table 2
+                                                                                         where ZS represents the outputs corresponding to different convolu­
+The result of optimal feature subset construction.                                                                                                         T
+                                                                                         tional scales, σ(⋅) represents the GELU activation function, and Hlstm ∈
+  Dataset   Battery               Optimal feature subset                                   B×Dhidden ×L
+            number
+                                                                                         R              represents the transposed LSTM output.
+                                                                                             The multi-scale convolution outputs are spliced along the channel
+  CALCE     #35                   CCDTTrend、CCCTTrend、CVCTTrend
+                                                                                         dimension. To mitigate potential information shifts introduced by con­
+            #36                   CCDTTrend、CCCTTrend、CVCTTrend
+            #37                   CCDTTrend、CCCTTrend、CVCTTrend、ResistanceTrend、         volutional encoding, a residual connection is incorporated between the
+                                  CCDTResidual                                           concatenated production and the original LSTM input. Subsequently,
+            #38                   CCDTTrend、CCCTTrend、ResistanceTrend                    positional encoding is applied:
+  TJU       #1                    CCDTTrend、CCCTTrend、CCCTResidual
+            #2                    CCDTTrend、CCCTTrend、CVCTResidual                       Hconcat = Concat[Z1 , Z3 , Z7 ]                                        (15)
+            #3                    CCDTTrend、CCCTTrend、CVCTResidual
+
+
+                                                                                     6
+H. Cheng and L. Zhang                                                                                                                     Energy 346 (2026) 140288
+
+
+H1 = {Hconcat Wms + bms } + Hlstm                                       (16)        where H3 ∈ RL×B×Dhidden represents the output of the cross-variable
+                                                                                    attention block.
+H2 = H1T + PE                                                           (17)
+                                                                                    3.3.4. Prediction head
+where Hconcat ∈ RB×L×(3⋅Dhidden ) represents the concatenated multi-scale               To generate predictions, MSTEA-Net employs a prediction head that
+features, Hms ∈ R(3⋅Dhidden )×Dhidden represents the multi-scale feature pro­       compresses the high-dimensional temporal features into low-
+jection matrix, bms represents the bias term, H1 ∈ RB×L×Dhidden represents          dimensional outputs, thereby enabling the forecasting of battery ca­
+the fused output with residual connection, PE ∈ RL×B×Dhidden represents             pacity degradation and the EOL point.
+the precomputed sinusoidal/cosine positional encoding matrix, and                       Specifically, the feature corresponding to the last time step of the
+H2 ∈ RL×B×Dhidden represents the final output of the temporal encoding              input sequence, hT, is selected to represent the hidden state at the final
+module.                                                                             step. This vector encapsulates a comprehensive summary of historical
+    This design enables joint modeling of long-term trends and short-               information:
+term local dynamics, ensuring that each time step in H2 contains                    hT = HL [T, :, :]                                                        (26)
+comprehensive information across multiple variables, thereby providing
+a richer and more robust temporal feature representation for the sub­                  Subsequently, hT ∈ RB×Dhidden is fed into a feed-forward decoder, which
+sequent attention mechanisms.                                                       performs nonlinear mapping and dimensionality reduction through a
+                                                                                    two-layer fully connected network:
+3.3.3. Cross-variable attention block
+                                                                                    z = GELU(hT W1 + b1 )                                                    (27)
+    As the model input comprises multiple health features with complex
+interdependencies, modeling each variable independently often fails to              y = zW2 + b2
+                                                                                    ̂                                                                        (28)
+capture the cross-variable coupling effects. Therefore, effectively
+capturing inter-variable dependencies alongside temporal dynamics is                where W1 ∈ RDhidden ×2Dhidden and b1 ∈ R2Dhidden represent the weights and
+crucial for enhancing prediction performance. To address this, a cross-             biases of the first linear layer, z ∈ RB×2Dhidden represents the intermediate
+variable attention block is designed within MSTEA-Net. Its core mech­
+                                                                                    feature representation, W2 ∈ R2Dhidden ×Dout and b2 ∈ RDout represent the
+anism is multi-head self-attention [47], where each attention head
+                                                                                    output layer parameters, ̂    y ∈ RB×Dout represents the final predicted ca­
+computes correlations across different feature variables and time steps.
+                                                                                    pacity values.
+This implicitly performs weighted aggregation along the temporal
+                                                                                        In summary, this hierarchical design allows MSTEA-Net to capture
+dimension, enabling dynamic modeling of cross-variable dependencies.
+                                                                                    the dynamic features of battery capacity degradation across multiple
+The self-attention mechanism [48] is formally defined as:
+                                                                                    scales while implicitly modeling inter-variable interactions, thereby
+                              ( T)
+                                QK                                                  achieving robust and accurate RUL prediction.
+Attention(Q, K, V) = soft max √̅̅̅̅ V                               (18)
+                                  dk
+
+where Q, K and V represent the query, key, and value matrices,                      3.4. Physics-informed loss function
+respectively, and dk represents the dimensionality of the key vectors.
+   The computation first projects the original representations into a                   To enhance the physical interpretability of the model predictions, a
+lower-dimensional subspace to perform similarity calculations at a                  physics-informed triple-composite loss function is introduced in addi­
+unified scale. The input sequence is linearly transformed to generate the           tion to the conventional data-driven loss. This design incorporates both
+corresponding query, key, and value matrices:                                       the consistency constraint and the degradation rate constraint derived
+                                                                                    from the Arrhenius degradation model [49], thereby ensuring that the
+Q = H2 W Q                                                              (19)        predictions achieve a balance between numerical fitting and physical
+                                                                                    consistency.
+K = H2 WK                                                               (20)
+                                                                                    3.4.1. Arrhenius consistency constraint
+V = H2 W V                                                              (21)
+                                                                                         The capacity degradation of LIBs during repeated charge-discharge
+                                                                                    cycling can typically be characterized by a temperature-dependent
+where WQ, WK and WV represent the projection matrices for Q, K and V,
+                                                                                    Arrhenius degradation kinetics model. Mathematically, this degrada­
+respectively.
+                                                                                    tion behavior can be formulated as follows:
+   For each attention head, self-attention is applied individually:
+                                                                                              (        )
+                 (                  )                                                              Ea
+headi = Attention QWiQ , KWiK , VWiV , i = 1, ..., h                (22)            karr = exp −                                                      (29)
+                                                                                                  kB T
+
+Output = Concat(head1 , head2 , ..., headh )⋅WO                         (23)                           (            )
+                                                                                    Dtheo (N) = 1 − exp − karr ⋅ Nb                                          (30)
+where headi represents the i-th attention head, WQ     K      V
+                                                  i , Wi and Wi represent               This process involves two key variable parameters, Ea and b. Ea
+                                                 O
+the corresponding projection matrices, and W represents the output                  represents the activation energy, characterizing the energy barrier of SEI
+mapping matrix. After this computation and weighted aggregation, each               growth, and is a core physical quantity determining the battery aging
+time step's representation dynamically integrates information from                  rate. According to relevant studies, Asiri et al. [50] fitted the SEI growth
+other variables and time steps, effectively modeling cross-variable                 activation energy to approximately 0.57 eV, while Hao et al. [51] re­
+dependencies.                                                                       ported an SEI activation energy range of about 0.40–0.80 eV in their
+   Following multi-head attention, two residual connections and a feed-             model. Considering that the operating conditions simulated in this study
+forward network (FFN) are introduced to improve training stability. This            favor a conservative estimate of long-term degradation, Ea = 0.65 eV is
+process can be expressed as:                                                        adopted as a conservative baseline. The parameter b represents the
+                                                                                    degradation exponent, reflecting the curvature of the capacity fade
+̃ = LayerNorm(H2 + Output)
+H                                                                       (24)
+                                                                                    profile. Traditional first-order kinetic models assume that capacity
+                                                                                    decay follows an exponential relation with cycle number (b = 1); how­
+H3 = LayerNorm(H
+               ̃ + FFN(H))
+                       ̃                                                (25)
+                                                                                    ever, in practical batteries, aging often exhibits super-exponential decay
+
+                                                                                7
+H. Cheng and L. Zhang                                                                                                                           Energy 346 (2026) 140288
+
+
+(b > 1), primarily due to the thickening of the SEI layer, which increases         constraint (Larr), defined in formula (32); second, the degradation rate
+Li+ diffusion resistance and accelerates irreversible lithium loss. Since          constraint (Lderiv), defined in formula (35); and finally, the standard
+this study aims to approximate the capacity fade trend in the middle and           mean squared error (MSE) data loss (Ldata), defined in formula (36):
+later stages, b is empirically set to 1.5, allowing the model to more
+                                                                                             1 ∑M ̂
+reasonably capture the accelerated degradation behavior.                           Ldata =         ( C(N) − C(N))2                                                  (36)
+                                                                                             M N=1
+    Other quantities in this model are fixed physical constants. Specif­
+ically, kB = 8.617 × 10− 5 eV/K represents the Boltzmann constant. T                   Formula (37) presents the complete form of the proposed loss func­
+represents the cell operating temperature; based on the test conditions of         tion, in which the three loss terms are assigned different weights to
+the two battery types employed in this study, the corresponding tem­               balance the trade-off between data fitting accuracy and the enforcement
+perature values are 274.15 K (1 ◦ C) and 298.15 K (25 ◦ C), respectively. N        of physical constraints:
+represents the cycle number. The term karr denotes the Arrhenius rate              Ltotal = Ldata + λarr Larr + λderiv Lderiv                                       (37)
+constant, representing the fraction of capacity loss per cycle, and is
+calculated as 1.059 × 10− 12 and 1.115 × 10− 11 for the two experimental              For weight selection, we adopted a strategy combining theoretical
+temperatures, respectively. Dtheo(N) represents the theoretical degra­             analysis and experimental validation. First, the weight of Ldata was fixed
+dation at that cycle.                                                              at 1 to ensure that the data term dominates during training and to
+    The measured degradation corresponding to the predicted capacity               prevent excessively large physical losses from hindering model conver­
+C(N)
+̂      can be formulated as:                                                       gence. Next, the initial values of the two physical loss weights were
+                                                                                   chosen to make their magnitudes comparable to the data loss, followed
+                 C(0) − C(N)
+                        ̂                                                          by a grid search over the range [1e-5, 5e-5, 1e-4, 5e-4, 1e-3] for both
+Dmeas (N) =                                                            (31)
+                    C(0)                                                           weights to identify the optimal combination, resulting in λarr = 0.0001
+                                                                                   and λderiv = 0.0001.
+where C(0) represents the initial battery capacity, C(N)
+                                                      ̂      represents the           This triple-composite loss function ensures that the predicted ca­
+predicted capacity at the N-th cycle, and Dmeas(N) represents the pre­             pacity curve not only fits the experimental data but also complies with
+dicted degradation at that cycle.                                                  the theoretical degradation pattern and degradation rate, thereby
+   Based on this, the first physical loss function, Larr, referred to as the       enhancing both the reliability and physical interpretability of the
+Arrhenius consistency constraint, can be defined as:                               predictions.
+
+         1 ∑M
+Larr =         (Dtheo (N) − Dmeas (N))2                                (32)        4. Experiments and analysis
+         M N=1
+
+where M represents the total number of data points and N represents the            4.1. Experiment settings
+current cycle.
+   This constraint ensures that the predicted degradation curve aligns                 For the training strategy, a hybrid approach integrating leave-one-
+with the overall trend dictated by the electrochemical degradation                 out cross-validation (LOO-CV) and sliding-window sequence modeling
+model.                                                                             was employed to comprehensively validate the proposed model's effi­
+                                                                                   cacy in LIBs RUL prediction. Specifically, within a dataset of N battery
+3.4.2. Degradation rate constraint                                                 cells, each iteration designates one cell as the test set and the remaining
+    Considering that relying solely on the capacity-curve consistency              N-1 cells as the training set, ensuring all units undergo testing. During
+constraint may be insufficient to guarantee physical fidelity, a second            each training-testing cycle, fixed-length sliding windows extract
+type of physics-informed constraint is introduced, namely the degrada­             consecutive segments from the target cell's degradation sequence as
+tion rate constraint. This constraint is based on a power-law-exponential          model inputs, with the immediately subsequent data point as the pre­
+decay model, which enforces that the predicted capacity decay in terms             diction target. This strategy maximizes data utilization while enabling
+of its temporal derivative is consistent with the Arrhenius degradation            robust cross-cell performance evaluation.
+model. Formula (33) defines the theoretical decay rate derived from the                Regarding network training, all experiments were conducted in a
+physical model, with parameter selection consistent with formulas (29)-            PyCharm development environment on a Windows operating system,
+(30):                                                                              equipped with an Intel Core i5-12400F CPU and an NVIDIA GeForce
+                                                                                   RTX 4060 GPU with 8 GB of VRAM. The key hyperparameter settings in
+dDtheo (N)                          (            )                                 the model are listed in Table 3.
+             ≈ karr ⋅ b ⋅ Nb− 1 ⋅exp − karr ⋅ Nb                       (33)
+   dN
+   Formula (34) defines the actual decay rate calculated from the ca­
+                                                                                   4.2. Evaluation metrics
+pacity sequence predicted by the neural network:
+dDmeas (N)                                                                            In this study, four evaluation metrics were employed to assess the
+             ≈ Dmeas (N + 1) − Dmeas (N)                               (34)        predictive performance of the proposed method: mean absolute error
+   dN
+                                                                                   (MAE), root mean square error (RMSE), coefficient of determination
+   Based on this, the second physical loss function, Lderiv, referred to as        (R2), and EOL cycle error (Ecycle). Here, Ecycle represents the error be­
+the degradation rate constraint, can be defined as:                                tween the predicted number of discharge cycles at which the battery
+                      (                     )2                                     reaches the EOL threshold and the corresponding actual value, with the
+              1 ∑M− 1 dDmeas (N) dDtheo (N)
+Lderiv =                        −                                      (35)
+             M− 1 N=1   dN         dN
+                                                                                   Table 3
+    This constraint ensures that the predicted capacity degradation                Hyperparameter settings.
+aligns with the underlying physical mechanism at the level of rate of                Hyperparameter                             CALCE dataset              TJU dataset
+change.
+                                                                                     Learning rate                                0.01                       0.01
+                                                                                     Length of sliding window                    64                         64
+3.4.3. Triple-composite loss function design                                         Hidden dimension                            32                         32
+   In summary, the triple-composite loss function proposed in this                   Number of attention head                     4                          4
+paper consists of the following terms. First, the Arrhenius consistency              Epochs                                     500                        300
+
+
+                                                                               8
+H. Cheng and L. Zhang                                                                                                                            Energy 346 (2026) 140288
+
+
+EOL threshold defined as 70% of the rated capacity.The corresponding                        representative methods were selected for comparison. The first is
+formulations are as follows:                                                                discrete wavelet transform (DWT), which represents a typical time-
+                                                                                            frequency joint analysis approach, where the decomposition level (l)
+          1∑n
+MAE =                 yi|
+                |yi − ̂                                                          (38)       was tested with values of 2, 3, and 4. The second is variational mode
+          n i=1
+                                                                                            decomposition (VMD), representing adaptive multi-scale decomposi­
+            √̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅
+             1∑n                             2
+                                                                                            tion, where the number of modes (k) was tested with values of 3, 4, and
+RMSE =                      (yi − ̂    yi)                                       (39)       5. The optimal parameter settings and corresponding experimental re­
+             n i=1
+                                                                                            sults of the two comparative methods are shown in Table 5.
+         ∑n
+                    y i )2
+              (yi − ̂                                                                           The comparison results show that STL exhibits the most balanced and
+R2 = 1 − ∑i=1
+          n              2
+                                                                                 (40)       stable performance across both datasets, with the Ecycle being particu­
+          i=1 (yi − yi )
+                                                                                            larly remarkable. This is mainly due to its decomposition structure
+         ⃒                                     ⃒                                            aligning with the capacity degradation process of LIBs, ensuring that the
+Ecycle = ⃒EOL cyclepredicted − EOL cycleactual ⃒                                 (41)
+                                                                                            extracted features remain continuous throughout the entire lifecycle and
+                                                                                            accurately capture capacity jump trends in the late degradation stage,
+where yi represents the actual capacity, ̂  y i represents the predicted ca­
+                                                                                            thereby significantly reducing cumulative prediction errors.
+pacity, yi is the mean of the actual capacities, and n is the total number of
+                                                                                                For the CALCE dataset, which exhibits frequent capacity fluctua­
+cycles in the capacity sequence, EOL cyclepredicted represents the pre­
+                                                                                            tions, DWT and VMD show similar performance, with all metrics lagging
+dicted EOL cycle, EOL cycleactual represents the actual EOL cycle.
+                                                                                            behind STL, indicating that they fail to provide sufficiently stable feature
+                                                                                            inputs. The relatively high Ecycle suggests that these methods inade­
+4.3. Result analysis                                                                        quately capture trend features in the late degradation phase and are
+                                                                                            highly sensitive to local noise. For the TJU dataset, which capacity
+4.3.1. Prediction accuracy analysis                                                         degradation is more gradual, both methods achieve significantly
+    This subsection presents an analysis of the RUL prediction results of                   improved performance. DWT approaches STL in predictive accuracy,
+the proposed method on both the CALCE and TJU datasets, with the                            while VMD surpasses STL in all metrics except Ecycle, demonstrating its
+detailed numerical performance summarized in Table 4. On the CALCE                          ability to fit well under low-noise, steady degradation conditions;
+dataset, the model achieves MAE values ranging from 0.0060 to 0.0077,                       however, its Ecycle still remains Significantly higher than that of STL.
+RMSE values between 0.0089 and 0.0144, all R2 metrics exceeding                             Overall, STL exhibits stronger robustness across different degradation
+0.9952, and Ecycle within two cycles, indicating that the model accu­                       patterns, whereas VMD and DWT perform well only on datasets with
+rately captures the capacity degradation trend and provides stable EOL                      relatively smooth degradation.
+point prediction. On the TJU dataset, prediction accuracy is further
+improved, with MAE reduced to 0.0014–0.0049, RMSE between 0.0037                            4.3.3. Model comparison experiment
+and 0.0066, R2 above 0.9963, and reaching a maximum of 0.9995, and                              To comprehensively evaluate the predictive performance of the
+Ecycle within one cycle. The results across both datasets demonstrate that                  proposed MSTEA-Net, a systematic set of comparative experiments was
+the proposed method exhibits excellent predictive performance and                           designed, encompassing reference models at two levels. Classical time-
+strong generalization capability under different battery types and                          series models (LSTM, Attn-LSTM, Transformer, Informer, and TCN)
+operating conditions.                                                                       constituted baseline benchmarks, while three advanced models,
+    To intuitively visualize the model's predictive performance, Figs. 3                    TGDDA, RUL-Mamba and Parallel LTCN-PHA, constituted state-of-the-
+and 4 present the predicted capacity degradation curves for the CALCE                       art comparisons. This multi-tiered validation framework enables
+and TJU datasets, respectively. In these figures, the black curves                          comprehensive evaluation of MSTEA-Net's effectiveness and competi­
+represent the actual capacity decay, the red curves denote the predicted                    tiveness. Additionally, the computational efficiency of each model was
+capacity decay, and the green curves indicate the prediction error at                       quantified, with the corresponding table presenting the training time
+each cycle. Of particular note, some batteries contain “dead points” due                    required for 100 epochs for each model.
+to measurement device errors. These points were identified and                                  The baseline benchmark results are summarized in Table 6, with
+removed using a local-window statistical method, where any value                            model performance near the EOL point illustrated in Figs. 3 and 4. On
+outside the range of mean ± 3σ was considered anomalous and subse­                          the CALCE dataset, MSTEA-Net achieves the best overall performance
+quently replaced via interpolation based on neighboring means. This                         across all four evaluation metrics, demonstrating superior capability in
+processing procedure was applied consistently across all batteries. As                      modeling degradation trajectories and identifying critical points. In
+shown in the left panels of the two figures, the predicted curves obtained                  contrast, LSTM exhibits the largest errors; Informer fails to fully leverage
+by the proposed method closely match the actual capacity degradation                        its architecture due to limited sample size; and Attn-LSTM, TCN, and
+profiles. The error curves below further demonstrate that, across all                       Transformer show comparable performance but remain less stable than
+cycles in both datasets, the prediction errors remain within 0.02 Ah and                    MSTEA-Net. On the TJU dataset, MSTEA-Net again delivers the lowest
+0.005 Ah, fully validating the method's high accuracy and stability.                        MAE and RMSE. Although its R2 is slightly lower than Transformer and
+                                                                                            TCN, its Ecycle remains the best, confirming MSTEA-Net's robustness and
+4.3.2. Comparative evaluation of STL                                                        consistency across datasets. Error comparisons across individual batte­
+   To verify the effectiveness of STL in health feature screening, two                      ries are shown in Fig. 5.
+                                                                                                Further analysis reveals the reasons behind baseline models' subop­
+Table 4                                                                                     timal performance at specific degradation stages. LSTM struggles with
+Overall prediction performance of the proposed method.                                      long-term dependencies due to gradient vanishing or exploding, leading
+                                                                                            to poor predictions during accelerated degradation. Attn-LSTM en­
+  Dataset               Battery                   MAE      RMSE     R2       Ecycle
+                                                                                            hances temporal feature extraction via attention mechanism, but its
+  CALCE                 #35                       0.0072   0.0144   0.9952   0              single-scale representation is insufficient to handle strong periodicity or
+                        #36                       0.0077   0.0112   0.9977   1
+                        #37                       0.0060   0.0089   0.9980   2
+                                                                                            local fluctuations. Transformer's self-attention fails to focus on critical
+                        #38                       0.0062   0.0099   0.9973   0              time steps with limited training samples, and Informer's sparse attention
+  TJU                   #1                        0.0027   0.0057   0.9980   0              cannot fully exploit long-sequence modeling under insufficient datas,
+                        #2                        0.0049   0.0066   0.9963   0              often causing unstable convergence. TCN, constrained by its fixed
+                        #3                        0.0014   0.0037   0.9995   1
+                                                                                            receptive field, captures local patterns effectively but cannot model
+
+                                                                                        9
+H. Cheng and L. Zhang                                                                                                              Energy 346 (2026) 140288
+
+
+
+
+                                  Fig. 3. Capacity prediction results of CALCE dataset. (a) #35 (b) #36 (c) #37 (d) #38.
+
+
+long-range dependencies across entire degradation cycles.                        of proposed triple-composite loss function (marked as NO PINN).
+    In the advanced models comparison, the results in Table 7 show that          Additionally, four further ablation settings were designed to verify the
+MSTEA-Net still outperforms the alternatives. On the CALCE dataset, it           effectiveness of MSTEA-Net's core components: (3) removing the multi-
+surpasses all comparison models across all metrics. On the TJU dataset,          scale temporal encoding module (marked as NO MSTE); (4) replacing
+although the best R2 comes from comparison models, MSTEA-Net ach­                the multi-scale temporal encoding with a single-scale (K = 3) temporal
+ieves the best MAE, RMSE, and Ecycle, demonstrating superior general­            encoding (marked as SINGLE); (5) removing the cross-variable attention
+ization capability. These experimental results indicate that, compared           block (marked as NO CVA); (6) removing the residual connections
+with the proposed MSTEA-Net, three comparison models, may suffer                 (marked as NO RES). Except for the controlled factors, all other network
+from inherent limitations in multi-scale temporal patterns and cross-            structures and training parameters were kept identical to ensure the
+variable couplings, thereby further validating the effectiveness and su­         fairness and reliability of the comparative analysis. Table 8 shows the
+periority of the MSTEA-Net model.                                                results of the ablation experiment, and Fig. 6 shows the error data cor­
+                                                                                 responding to each battery.
+4.3.4. Ablation experiment                                                           For the CALCE dataset, the results are as follows: (1) Removing STL
+    First, two ablation experiments were designed to evaluate feature            slightly improves the R2 metric but significantly increases the Ecycle,
+processing and physical constraint: (1) using the original health feature        indicating that while the model fits the data more closely, it neglects
+set directly as model input without STL decomposition, to assess the             physical consistency and is prone to overfitting. (2) Incorporating
+effectiveness of the proposed feature selection strategy (marked as NO           physical constraints substantially improves prediction performance,
+STL); (2) removing the physical consistency constraints from the loss            showing that relying solely on data-driven loss cannot ensure physical
+function, retaining only the data-driven term, to assess the contribution        consistency or achieve high-accuracy predictions. (3) Removing the
+
+
+                                                                            10
+H. Cheng and L. Zhang                                                                                                                  Energy 346 (2026) 140288
+
+
+
+
+                                           Fig. 4. Capacity prediction results of TJU dataset. (a) #1 (b) #2 (c) #3.
+
+
+
+Table 5                                                                             Table 6
+Comparison results of different decomposition methods.                              Performance comparison of classic models.
+  Dataset       Model           MAE         RMSE         R2           Ecycle         Dataset    Model          MAE       RMSE     R2        Ecycle   Time(s)
+
+  CALCE         STL             0.0068      0.0111       0.9971       0.75           CALCE      MSTEA-Net      0.0068    0.0111   0.9971    0.75      5.67
+                DWT(l = 4)      0.0085      0.0133       0.9947       4.00                      LSTM           0.0095    0.0149   0.9935    3.75      0.82
+                VMD(k = 3)      0.0082      0.0133       0.9954       5.00                      Attn-LSTM      0.0077    0.0131   0.9952    1.75      4.24
+  TJU           STL             0.0030      0.0053       0.9979       0.33                      Transformer    0.0072    0.0123   0.9964    2.25      3.72
+                DWT(l = 4)      0.0044      0.0055       0.9979       1.33                      Informer       0.0088    0.0143   0.9947    1.50     10.04
+                VMD(k = 4)      0.0027      0.0043       0.9985       3.00                      TCN            0.0076    0.0128   0.9959    2.25     12.62
+                                                                                     TJU        MSTEA-Net      0.0030    0.0053   0.9979    0.33      4.18
+                                                                                                LSTM           0.0051    0.0079   0.9960    5.00      0.87
+multi-scale temporal encoding or reducing it to a single-scale configu­                         Attn-LSTM      0.0034    0.0059   0.9978    2.00      3.14
+                                                                                                Transformer    0.0037    0.0063   0.9981    3.33      3.89
+ration deteriorates all metrics, demonstrating that simultaneous
+                                                                                                Informer       0.0037    0.0060   0.9979    1.67      7.00
+modeling of long-, medium-, and short-term degradation patterns is                              TCN            0.0048    0.0068   0.9981    1.33      8.31
+essential for accurate prediction. (4) Removing the cross-variable
+attention block or residual connections also significantly increases er­
+rors, especially the Ecycle, highlighting the necessity of multi-feature in­        heavily on trend extraction. (2) Other modules have a slightly weaker
+teractions and stable gradient propagation for reliable feature fusion and          impact on global fitting compared to CALCE, suggesting that smoother
+convergence.                                                                        curves facilitate modeling. (3) The absence of physical constraints still
+    For the TJU dataset, the ablation trends are similar to CALCE, with             leads to an increase in Ecycle, highlighting their importance. (4) Multi-
+some differences in sensitivity: (1) Removing STL similarly leads to                scale temporal encoding remains critical, and performance drops due
+simultaneous deterioration in both R2 and Ecycle, indicating that                   to using single-scale temporal encoding are even larger than in CALCE.
+although the capacity degradation curve is smoother, it relies more                 (5) The impact of removing the cross-variable attention block is
+
+
+                                                                               11
+H. Cheng and L. Zhang                                                                                                                             Energy 346 (2026) 140288
+
+
+
+
+                            Fig. 5. Performance comparison of classic models on each battery. (a)–(d) CALCE dataset (e)–(h) TJU dataset.
+
+
+                                                                                                    In addition, the training strategy combining LOO-CV and sliding-
+Table 7
+                                                                                                window sequence modeling can be naturally aligned with the engi­
+Performance comparison of advanced models.
+                                                                                                neering workflow of “form offline calibration on a subset of cells to
+  Dataset   Model                 MAE       RMSE        R2            Ecycle   Time(s)          online prediction for the remaining cells”. Only a small portion of bat­
+  CALCE     MSTEA-Net             0.0068    0.0111      0.9971        0.75     5.67             teries need to undergo aging experiments to form the training set, while
+            TGDDA                 0.0078    0.0126      0.9960        1.50     4.62             the remaining untested cells can be predicted directly. Meanwhile, the
+            RUL-Mamba             0.0082    0.0134      0.9959        1.75     3.15
+                                                                                                sliding-window mechanism enables rolling updates based on newly
+            Parallel LTCN-PHA     0.0074    0.0120      0.9965        2.00     7.82
+  TJU       MSTEA-Net             0.0030    0.0053      0.9979        0.33     4.18             observed data, providing a practical pathway for online RUL estimation
+            TGDDA                 0.0034    0.0058      0.9982        2.00     3.40             and long-term health monitoring.
+            RUL-Mamba             0.0039    0.0062      0.9974        2.50     2.47
+            Parallel LTCN-PHA     0.0038    0.0062      0.9977        1.75     5.93             5. Conclusion
+
+
+relatively mild, indicating more stable inter-feature relationships;                                To overcome persistent challenges of feature redundancy, inade­
+however, removing residual connections results in a sharp increase in                           quate dynamic correlation modeling, and physical inconsistency in LIBs
+error, reflecting the model's stronger dependence on stable gradient                            RUL prediction, this study proposes a hierarchically structured deep
+flow.                                                                                           learning framework. The methodology initiates with STL decomposition
+    Based on the above analysis, removing different modules led to                              to decouple intrinsic degradation patterns from raw health features,
+varying degrees of performance degradation, confirming the contribu­                            followed by wrapper-optimized feature subset construction maximizing
+tion of each core component and demonstrating the rationality of the                            information synergy. Subsequently, the novel MSTEA-Net architecture
+proposed method.                                                                                dynamically captures degradation phase transitions, while a physics-
+                                                                                                regularized triple-composite loss function enforces electrochemical
+4.4. Feasibility analysis                                                                       consistency during training. Experimental results demonstrate that the
+                                                                                                proposed approach exhibits excellent predictive performance and
+    This section evaluates the practical feasibility of the proposed                            robustness across different datasets and operating conditions.
+method and analyzes its potential for real-world deployment. First, the                         Specifically.
+CALCE and TJU datasets used in this study are both derived from long-
+term cycling aging experiments on commercial LIBs, where charging-                                (1) On the primary CALCE dataset, the model achieves MAE and
+discharging protocols follow typical degradation patterns, realistically                              RMSE values of 0.0068 and 0.0111, respectively, with an R2 of
+reflecting aging processes under real-world usage conditions. Second,                                 0.9971 and an average EOL cycle error of only 0.75 cycles,
+the model relies only on temporal features extracted from charge/                                     accurately capturing the capacity degradation process while
+discharge cycles and internal resistance measurements. Experiments                                    maintaining a desirable balance between computational effi­
+conducted on the TJU dataset further confirm that stable and superior                                 ciency and prediction accuracy.
+prediction performance can be achieved using temporal features alone.                             (2) On the TJU dataset, the model also delivers consistent perfor­
+This implies that no additional sensors are required in real deployment,                              mance, reducing MAE and RMSE by 11.76% and 10.17%
+and the necessary inputs can be obtained directly from BMS operational                                compared with the best baseline model, while achieving an R2 of
+logs, offering high data accessibility and low implementation cost.                                   0.9971 and an average EOL cycle error of 0.33 cycles, thereby
+
+
+Table 8
+Ablation experiment results.
+  Dataset        Model            MAE          RMSE              R2               Ecycle        Dataset      Model          MAE          RMSE        R2            Ecycle
+
+  CALCE          Proposed         0.0068       0.0111            0.9971           0.75          TJU          Proposed       0.0030       0.0053      0.9979        0.33
+                 NO STL           0.0075       0.0119            0.9974           4.25                       NO STL         0.0050       0.0069      0.9963        5.00
+                 NO PINN          0.0076       0.0127            0.9955           2.00                       NO PINN        0.0044       0.0063      0.9977        4.00
+                 NO MSTE          0.0075       0.0122            0.9958           1.50                       NO MSTE        0.0036       0.0057      0.9978        2.00
+                 SINGLE           0.0070       0.0118            0.9959           1.25                       SINGLE         0.0042       0.0062      0.9976        3.00
+                 NO CVA           0.0077       0.0128            0.9961           2.75                       NO CVA         0.0034       0.0056      0.9976        2.67
+                 NO RES           0.0073       0.0123            0.9964           3.00                       NO RES         0.0049       0.0070      0.9971        4.33
+
+
+                                                                                           12
+H. Cheng and L. Zhang                                                                                                                           Energy 346 (2026) 140288
+
+
+
+
+                             Fig. 6. Results of ablation experiment on each battery. (a)–(d) CALCE dataset (e)–(g) TJU dataset.
+
+
+       validating its generalization capability and structural adapt­             Acknowledgement
+       ability under multi-source data scenarios.
+   (3) Ablation experiments further confirm the importance of the key                 This study is supported by the National Natural Science Foundation
+       modules: removing the optimal feature subset construction and              of China (No. 52207235).
+       physical consistency constraints increases the MAE by 9.33% and
+       10.53%, respectively, indicating that the proposed framework               Data availability
+       effectively balances predictive accuracy with physical rationality.
+   (4) From a mechanistic perspective, the synergistic integration of                 Data will be made available on request.
+       STL decomposition and Wrapper-based feature selection en­
+       hances the mutual information strength and temporal consistency            References
+       among input features. In contrast, the incorporation of physical
+       consistency constraints guides the network outputs to better align          [1] Liu W, Teh J. Remaining useful life prediction of lithium-ion batteries based on an
+                                                                                       incremental internal resistance aging model and a gated recurrent unit neural
+       with electrochemical degradation mechanisms, endowing the                       network. Energy 2025;333:137527.
+       model with strong physical interpretability and transferability.            [2] Wang S, Jin S, Bai D, Fan Y, Shi H, Fernandez C. A critical review of improved deep
+                                                                                       learning methods for the remaining useful life prediction of lithium-ion batteries.
+                                                                                       Energy Rep 2021;7:5562–74.
+    Although the proposed prediction framework demonstrates strong                 [3] Zhao B, Zhang W, Zhang Y, Zhang C, Zhang C, Zhang J. Research on the remaining
+performance, certain limitations remain. First, the current model vali­                useful life prediction method for lithium-ion batteries by fusion of feature
+dation is primarily based on existing datasets and lacks assessment                    engineering and deep learning. Appl Energy 2024;358:122325.
+                                                                                   [4] Li Y, Qin X, Chai M, Wu H, Zhang F, Jiang F, Wen C. SOH evaluation and RUL
+under extreme operating conditions. Second, in online real-time pre­                   estimation of lithium-ion batteries based on MC-CNN-TimesNet model. Reliab Eng
+diction scenarios for large-scale battery packs, training and inference                Syst Saf 2025;261:111125.
+may be constrained by computational bottlenecks. Therefore, future                 [5] Zhou J, Wang P, Wu X, Liu T. Centralized strategy learning with multi-feature scale
+                                                                                       health factors for lithium-ion battery RUL prediction. J Energy Storage 2025;132
+work can focus on the following directions: introducing transfer
+                                                                                       (C):117875.
+learning, few-shot learning, and extended physical constraints to enable           [6] Pang H, Chen K, Geng Y, Wu L, Wang F, Liu J. Accurate capacity and remaining
+the model to effectively handle unknown operating conditions; mean­                    useful life prediction of lithium-ion batteries based on improved particle swarm
+while, optimizing the model architecture and inference algorithms to                   optimization and particle filter. Energy 2024;293:130555.
+                                                                                   [7] Zhang Y, Xiong R, He H, Pecht M. Long short-term memory recurrent neural
+improve the efficiency of online prediction for large-scale battery packs,             network for remaining useful life prediction of lithium-ion batteries. IEEE Trans
+thereby enhancing the model's scalability and applicability in practical               Veh Technol 2018;67(7):5695–705.
+scenarios.                                                                         [8] Li X, Yu D, Byg V, Ioan S. The development of machine learning-based remaining
+                                                                                       useful life prediction for lithium-ion batteries. J Energy Chem 2023;82:103–21.
+                                                                                   [9] Xue Z, Zhang Y, Cheng C, Ma G. Remaining useful life prediction of lithium-ion
+CRediT authorship contribution statement                                               batteries with adaptive unscented kalman filter and optimized support vector
+                                                                                       regression. Neurocomputing 2020;376:95–102.
+                                                                                  [10] Xia F, Wang K, Chen J. State of health and remaining useful life prediction of
+   Hanlin Cheng: Writing – original draft, Software, Methodology,                      lithium-ion batteries based on a disturbance-free incremental capacity and
+Conceptualization. Lifeng Zhang: Writing – review & editing,                           differential voltage analysis method. J Energy Storage 2023;64:107161.
+Supervision.                                                                      [11] Zhou Y, Wang S, Xie Y, Zeng J, Fernandez C. Remaining useful life prediction and
+                                                                                       state of health diagnosis of lithium-ion batteries with multiscale health features
+                                                                                       based on optimized CatBoost algorithm. Energy 2024;300:131575.
+                                                                                  [12] Huang Z, Ma Z. Remaining useful life prediction of lithium-ion batteries based on
+Declaration of competing interest                                                      autoregression with exogenous variables model. Reliab Eng Syst Saf 2024;252:
+                                                                                       110485.
+    The authors declare that they have no known competing financial               [13] Yu Q, Wang F, Zhai Z, Zheng S, Liu B, Zhao Z, Chen X. Multi-time scale feature
+                                                                                       extraction for early prediction of battery RUL and knee point using a hybrid deep
+interests or personal relationships that could have appeared to influence
+                                                                                       learning approach. J Energy Storage 2025;117:116024.
+the work reported in this paper.
+
+                                                                             13
+H. Cheng and L. Zhang                                                                                                                                           Energy 346 (2026) 140288
+
+[14] Ma G, Zhang Y, Cheng C, Zhou B, Hu P, Yuan Y. Remaining useful life prediction of           [33] Ma L, Tian J, Zhang T, Guo Q, Hu C. Accurate and efficient remaining useful life
+     lithium-ion batteries based on false nearest neighbors and a hybrid neural network.              prediction of batteries enabled by physics-informed machine learning. J Energy
+     Appl Energy 2019;253:113626.                                                                     Chem 2024;91:512–21.
+[15] Gao T, Lu W. Reduced-order electrochemical models with shape functions for fast,            [34] Zhang S, Liu Z, Xu Y, Guo J, Su H. A physics-informed hybrid data-driven approach
+     accurate prediction of lithium-ion batteries under high C-rates. Appl Energy 2024;               with generative electrode-level features for lithium-ion battery health prognostics.
+     353(A):121954.                                                                                   IEEE Transactions on Transportation Electrification 2025;11(1):4857–71.
+[16] El-Dalahmeh M, Al-Greer M, El-Dalahmeh M, Bashir R. Physics-based model                     [35] Tu H, Moura S, Wang Y, Fang H. Integrating physics-based modeling with machine
+     informed smooth particle filter for remaining useful life prediction of lithium-ion              learning for lithium-ion batteries. Appl Energy 2023;329:120289.
+     battery. Measurement 2023;214:112838.                                                       [36] Feng H, Xue D. Parallel-branch enhanced ShuffleNet with dual-physics constraints
+[17] Lyu Z, Gao R, Chen L. Li-ion battery state of health estimation and remaining useful             for lithium-ion battery RUL prediction. J Energy Storage 2025;118:116210.
+     life prediction through a model-data-fusion method. IEEE Trans Power Electron               [37] Ye J, Xie Q, Lin M, Wu J. A method for estimating the state of health of lithium-ion
+     2021;36(6):6228–40.                                                                              batteries based on physics-informed neural network. Energy 2024;294:130828.
+[18] Chu Y, Cui N, Liu K. Nonlinear modeling and SOC estimation of lithium-ion                   [38] Li L, Li Y, Mao R, Li L, Hua W, Zhang J. Remaining useful life prediction for
+     batteries based on block-oriented structures. Energy 2025;315:134273.                            lithium-ion batteries with a hybrid model based on TCN-GRU-DNN and dual
+[19] Chen Z, Wang Z, Wu W, Xia T, Pan E. Neural representation-based wiener process                   attention mechanism. IEEE Transactions on Transportation Electrification 2023;9
+     with meta-learning for battery RUL prediction under time-varying degradation                     (3):4726–40.
+     rate. IEEE Trans Instrum Meas 2025;74:1–13.                                                 [39] Huang J, Liu L, Zhao H, Li T, Li B. RUL-Mamba: mamba-based remaining useful life
+[20] Liu L, Huang J, Zhao H, Li T, Li B. PatchFormer: a novel patch-based transformer                 prediction for lithium-ion batteries. J Energy Storage 2025;120:116376.
+     for accurate remaining useful life prediction of lithium-ion batteries. J Power             [40] Yu J, Cai Y, Yang Z, Li L. A parallel LTCN-PHA network for remaining useful life
+     Sources 2025;631:236187.                                                                         prediction of lithium-ion batteries. Energy 2025;337:138436.
+[21] Yao F, He W, Wu Y, Ding F, Meng D. Remaining useful life prediction of lithium-ion          [41] Liu K, Shang Y, Ouyang Q, Widanage W. A data-driven approach with uncertainty
+     batteries using a hybrid model. Energy 2022;248:123622.                                          quantification for predicting future capacities and remaining useful life of lithium-
+[22] Guo W, He M. An optimal relevance vector machine with a modified degradation                     ion battery. IEEE Trans Ind Electron 2021;68(4):3170–80.
+     model for remaining useful lifetime prediction of lithium-ion batteries. Appl Soft          [42] Zhu J, Wang Y, HuangY Bhushan Gopaluni R, Cao Y, et al. Data-driven capacity
+     Comput 2022;124:108967.                                                                          estimation of commercial lithium-ion batteries from voltage relaxation. Nat
+[23] Yang Z, Wang Y, Kong C. Remaining useful life prediction of lithium-ion batteries                Commun 2022;13:2261.
+     based on a mixture of ensemble empirical mode decomposition and GWO-SVR                     [43] Chen H, Yuan B, Lu Q, Shah B, Hu R, Wu H, Zhou X, Han Q, Li S. Extracting health
+     model. IEEE Trans Instrum Meas 2021;70:1–11.                                                     indicators from a single cycle of data based on the aging mechanism to accurately
+[24] Ouyang T, Wang C, Jin S, Su Y. Fuzzy information granulation for capacity efficient              predict the knee point and remaining useful life of spent lithium-ion battery.
+     prediction in lithium-ion battery. Renew Sustain Energy Rev 2025;211:115241.                     J Energy Storage 2025;132(B):117813.
+[25] Zhang F, Shen Z, Xu M, Xie Q, Fu Q, Ma R. Remaining useful life prediction of               [44] Gong J, Qu Z, Zhu Z, Xu H. Parallel TimesNet-BiLSTM model for ultra-short-term
+     lithium-ion batteries based on TCN-DCN fusion model combined with IRRS                           photovoltaic power forecasting using STL decomposition and auto-tuning. Energy
+     filtering. J Energy Storage 2023;72(D):108586.                                                   2025;320:135286.
+[26] Yang Y. A machine-learning prediction method of lithium-ion battery life based on           [45] Ma S, Hou X, Luo M. Joint prediction of the state of health and remaining useful
+     charge process for different applications. Appl Energy 2021;292:116897.                          life for lithium-ion batteries based on Wrapper cascade-Stacking. J Energy Storage
+[27] Li L, Li Y, Mao R, Li Y, Lu W, Zhang J. TPANet: a novel triple parallel attention                2025;112:115563.
+     network approach for remaining useful life prediction of lithium-ion batteries.             [46] Li J, Mao W, Yang B, Meng Z, Tong K, Yu S. RUL prediction of rolling bearings
+     Energy 2024;309:132890.                                                                          across working conditions based on multi-scale convolutional parallel memory
+[28] Wang J, Zhang S, Li C, Wu L, Wang Y. A data-driven method with mode                              domain adaptation network. Reliab Eng Syst Saf 2024;243:109854.
+     decomposition mechanism for remaining useful life prediction of lithium-ion                 [47] Pan T, Chen J, Ye Z, Li A. A multi-head attention network with adaptive meta-
+     batteries. IEEE Trans Power Electron 2022;37(11):13684–95.                                       transfer learning for RUL prediction of rocket engines. Reliab Eng Syst Saf 2022;
+[29] Li Y, Li L, Mao R, Zhang Y, Xu S, Zhang J. Hybrid data-driven approach for                       225:108610.
+     predicting the remaining useful life of lithium-ion batteries. IEEE Transactions on         [48] Zhu J, Jiang Q, Shen Y, Xu F, Zhu Q. Res-HSA: residual hybrid network with self-
+     Transportation Electrification 2024;10(2):2789–805.                                              attention mechanism for RUL prediction of rotating machinery. Eng Appl Artif
+[30] Cai N, Que X, Zhang X, Feng W, Zhou Y. A deep learning framework for the joint                   Intell 2023;124:106491.
+     prediction of the SOH and RUL of lithium-ion batteries based on bimodal images.             [49] Chen Z, Wang Z, Wu W, Xia T, Pan E. A hybrid battery degradation model
+     Energy 2024;302:131700.                                                                          combining arrhenius equation and neural network for capacity prediction under
+[31] Wei C, Pang H, Huang T, Quan Z, Qian Z. Predicting lithium-ion battery health                    time-varying operating conditions. Reliab Eng Syst Saf 2024;252:110471.
+     using attention mechanism with kolmogorov-arnold and physics-informed neural                [50] Asiri M, Kedhim M, Jain V, Ballal S, Singh A, et al. Impact of temperature and state-
+     networks. Expert Syst Appl 2026;296(B):128969.                                                   of-charge on long-term storage degradation in lithium-ion batteries: an integrated
+[32] Li Y, He M, Ren Y, Gao B, Qi H. Physics-informed neural network for co-estimation                P2D-based degradation analysis. RSC Adv 2025;15(28):22576–86.
+     of state of health, remaining useful life, and short-term degradation path in               [51] Hao F, Liu Z, Balbuena PB, Mukherjee P. Mesoscale elucidation of solid electrolyte
+     Lithium-ion batteries. Appl Energy 2025;398:126427.                                              interphase layer Formation in Li-Ion battery anode. The Journal of Physical
+                                                                                                      Chemistry 2017;121(47):26233–40.
+
+
+
+
+                                                                                            14
+

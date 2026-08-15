@@ -1,0 +1,82 @@
+{
+  "protocol": "MGI-DSSM-aligned IC2ML RUL evaluation",
+  "task": "past_16_cycles_to_next_capacity_and_threshold_RUL",
+  "trajectory_mode": "observed_last_capacity_plus_predicted_delta",
+  "seed": 17,
+  "test_battery": "B0006",
+  "best_epoch": 33,
+  "best_validation_mae_ah": 0.008080433122813702,
+  "best_validation_objective": 0.008080433122813702,
+  "folds": [
+    {
+      "mae": 0.009977783475603377,
+      "rmse": 0.019066327596994666,
+      "r2": 0.9828680429173408,
+      "RUL_real": 59,
+      "RUL_pred": 60,
+      "AE": 1,
+      "RE": 0.017241379310344827,
+      "direct_rul_mae_cycles": 28.828550685009287,
+      "direct_rul_rmse_cycles": 30.634284404537297,
+      "test_battery": "B0006",
+      "start_point": 50,
+      "num_windows": 119
+    },
+    {
+      "mae": 0.010582130364697389,
+      "rmse": 0.02049908691653473,
+      "r2": 0.9643102365245039,
+      "RUL_real": 39,
+      "RUL_pred": 40,
+      "AE": 1,
+      "RE": 0.02631578947368421,
+      "direct_rul_mae_cycles": 32.97341695582174,
+      "direct_rul_rmse_cycles": 33.26120534509614,
+      "test_battery": "B0006",
+      "start_point": 70,
+      "num_windows": 99
+    },
+    {
+      "mae": 0.011325443847269951,
+      "rmse": 0.021926313131273995,
+      "r2": 0.9501338836344085,
+      "RUL_real": 19,
+      "RUL_pred": 20,
+      "AE": 1,
+      "RE": 0.05555555555555555,
+      "direct_rul_mae_cycles": 33.09581882874422,
+      "direct_rul_rmse_cycles": 33.3834349022747,
+      "test_battery": "B0006",
+      "start_point": 90,
+      "num_windows": 79
+    }
+  ],
+  "config": {
+    "dataset": "nasa",
+    "output_root": "audit_anchored_delta",
+    "test_batteries": [
+      "B0006"
+    ],
+    "seeds": [
+      7,
+      17
+    ],
+    "seq_len": 16,
+    "epochs": 200,
+    "batch_size": 128,
+    "hidden_dim": 256,
+    "learning_rate": 0.0001,
+    "validation_fraction": 0.15,
+    "selection_objective": "capacity_mae",
+    "patience": 30,
+    "voltage_start": 3.9,
+    "voltage_end": 4.0,
+    "rul_scale_cycles": 200.0,
+    "feature_source": "10-point incremental charge-capacity curve over 3.9-4 V"
+  },
+  "runtime": {
+    "python_executable": "D:\\ChenLi\\Anaconda\\anaconda\\envs\\etsformer\\python.exe",
+    "torch_version": "2.11.0+cu128",
+    "cuda_available": true
+  }
+}

@@ -1,0 +1,51 @@
+dataset:
+  name: NASA
+  input_mode: Univariable
+  data_dir: Data/NASA_Data/
+  battery_cache_path: Data/NASA_Data/NASA.npy
+  battery_list: [B0005, B0006, B0007, B0018]
+  train_battery_list: [B0006, B0007, B0018]
+  real_data_path_template: Results/Capacity_{test_name}_Real_Data.pth
+  rated_capacity: 2.0
+  test_name: B0005
+  start_points: [50, 70, 90]
+
+features:
+  time_varying_known_reals: [Capacity]
+  time_varying_unknown_reals: [target]
+
+window:
+  seq_len: 16
+  label_len: 0
+  pred_len: 1
+
+train:
+  count: 1
+  batch_size: 16
+  max_epochs: 200
+  learning_rate: 0.001
+  optimizer: adam
+  patience: 20
+  gradient_clip_val: 0.2
+  predict_batch_size: 256
+  train_split_ratio: 0.8
+  num_workers: 0
+  shuffle_train: true
+  drop_last_train: true
+
+runtime:
+  seed: 2025
+  auto_select_gpu: true
+
+reproduction_protocol:
+  data_mode: author_public
+  group_id: constant
+  input_scaler: default
+
+output:
+  results_dir: Results/NASA_Protocol_Screen/AuthorPublic_PaperTrain
+  logs_dir: Logs/NASA_Protocol_Screen/AuthorPublic_PaperTrain
+  outputs_dir: Outputs/NASA_Protocol_Screen/AuthorPublic_PaperTrain
+  results_filename_template: "{dataset}_{input_mode}_{model}_{test_name}.pth"
+  log_filename_template: "{dataset}_{input_mode}_{model}_{test_name}.log"
+  plot_dir_template: "Plots/NASA_Protocol_Screen/AuthorPublic_PaperTrain/{test_name}/{model}"

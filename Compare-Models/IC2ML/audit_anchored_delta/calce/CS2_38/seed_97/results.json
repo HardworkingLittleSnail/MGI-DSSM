@@ -1,0 +1,52 @@
+{
+  "protocol": "MGI-DSSM-aligned IC2ML RUL evaluation",
+  "task": "past_64_cycles_to_next_capacity_and_threshold_RUL",
+  "trajectory_mode": "observed_last_capacity_plus_predicted_delta",
+  "seed": 97,
+  "test_battery": "CS2_38",
+  "best_epoch": 12,
+  "best_validation_mae_ah": 0.007698869798332453,
+  "best_validation_objective": 0.007698869798332453,
+  "folds": [
+    {
+      "mae": 0.00471923571919095,
+      "rmse": 0.01037681796476789,
+      "r2": 0.9973560952954317,
+      "RUL_real": 458,
+      "RUL_pred": 459,
+      "AE": 1,
+      "RE": 0.002188183807439825,
+      "direct_rul_mae_cycles": 18.637960226678555,
+      "direct_rul_rmse_cycles": 25.130695289113266,
+      "test_battery": "CS2_38",
+      "start_point": 300,
+      "num_windows": 697
+    }
+  ],
+  "config": {
+    "dataset": "calce",
+    "output_root": "audit_anchored_delta",
+    "test_batteries": [
+      "CS2_38"
+    ],
+    "seeds": [
+      7,
+      97
+    ],
+    "seq_len": 64,
+    "epochs": 200,
+    "batch_size": 128,
+    "hidden_dim": 256,
+    "learning_rate": 0.0001,
+    "validation_fraction": 0.15,
+    "selection_objective": "capacity_mae",
+    "patience": 30,
+    "rul_scale_cycles": 1000.0,
+    "feature_source": "10-point incremental charge-capacity curve over 3.9-4.0 V"
+  },
+  "runtime": {
+    "python_executable": "D:\\ChenLi\\Anaconda\\anaconda\\envs\\etsformer\\python.exe",
+    "torch_version": "2.11.0+cu128",
+    "cuda_available": true
+  }
+}

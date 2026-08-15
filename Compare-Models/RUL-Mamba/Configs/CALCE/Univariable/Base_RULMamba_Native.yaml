@@ -1,0 +1,51 @@
+dataset:
+  name: CALCE
+  input_mode: Univariable
+  battery_cache_path: Data/CALCE_data/CALCE_Data.npy
+  battery_list: [CS2_35, CS2_36, CS2_37, CS2_38]
+  start_points:
+    CS2_35: 200
+    CS2_36: 200
+    CS2_37: 300
+    CS2_38: 300
+  rated_capacity: 1.1
+
+window:
+  # The CALCE comparison contract remains 64 observed capacity values -> 1 step.
+  seq_len: 64
+  pred_len: 1
+
+train:
+  seeds: [7, 17, 27, 37, 47, 57, 67, 77, 87, 97]
+  validation_fraction: 0.20
+  max_epochs: 200
+  batch_size: 16
+  learning_rate: 0.0022
+  weight_decay: 0.0
+  optimizer: adam
+  patience: 20
+  early_stopping_min_delta: 0.00001
+  checkpoint_monitor: val_loss
+  gradient_clip_val: 0.2
+  shuffle_train: true
+  drop_last_train: true
+  num_workers: 0
+
+runtime:
+  gpu_id: 0
+
+output:
+  outputs_dir: Outputs/CALCE/Univariable/RULMamba_Native_Protocol
+  logs_dir: Logs/CALCE/Univariable/RULMamba_Native_Protocol
+
+protocol:
+  held_out_battery: true
+  preprocessing: rul_mamba_paper
+  validation: per_training_battery_tail_80_20
+  normalization: minmax_before_train_validation_split
+  normalization_scope: full_held_in_batteries
+  target: capacity_divided_by_rated_capacity
+  checkpoint_monitor: validation_smape
+  eol_threshold_ratio: 0.7
+  evaluation: mgi_dssm_final_symmetric_consecutive_eol
+

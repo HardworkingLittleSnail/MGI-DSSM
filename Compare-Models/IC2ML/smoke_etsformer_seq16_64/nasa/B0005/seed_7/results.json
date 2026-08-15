@@ -1,0 +1,74 @@
+{
+  "protocol": "MGI-DSSM-aligned IC2ML RUL evaluation",
+  "task": "past_16_cycles_to_next_capacity_and_threshold_RUL",
+  "seed": 7,
+  "test_battery": "B0005",
+  "best_epoch": 1,
+  "best_validation_mae_ah": 0.5324280261993408,
+  "best_validation_objective": 0.5324280261993408,
+  "folds": [
+    {
+      "mae": 0.3386502125683953,
+      "rmse": 0.38807715106438306,
+      "r2": -7.225245374856993,
+      "RUL_real": 75,
+      "RUL_pred": 120,
+      "AE": 45,
+      "RE": 0.6081081081081081,
+      "direct_rul_mae_cycles": 23.916002501459683,
+      "direct_rul_rmse_cycles": 34.62934558733629,
+      "test_battery": "B0005",
+      "start_point": 50,
+      "num_windows": 119
+    },
+    {
+      "mae": 0.399511178334554,
+      "rmse": 0.42500604676156006,
+      "r2": -17.345542162749712,
+      "RUL_real": 55,
+      "RUL_pred": 100,
+      "AE": 45,
+      "RE": 0.8333333333333334,
+      "direct_rul_mae_cycles": 15.541549272308446,
+      "direct_rul_rmse_cycles": 23.90537018720066,
+      "test_battery": "B0005",
+      "start_point": 70,
+      "num_windows": 99
+    },
+    {
+      "mae": 0.453665437577646,
+      "rmse": 0.4657202340975235,
+      "r2": -36.251449964325985,
+      "RUL_real": 35,
+      "RUL_pred": 80,
+      "AE": 45,
+      "RE": 1.0,
+      "direct_rul_mae_cycles": 7.990449785808973,
+      "direct_rul_rmse_cycles": 13.661501808931405,
+      "test_battery": "B0005",
+      "start_point": 90,
+      "num_windows": 79
+    }
+  ],
+  "config": {
+    "dataset": "nasa",
+    "output_root": "smoke_etsformer_seq16_64",
+    "test_batteries": [
+      "B0005"
+    ],
+    "seeds": [
+      7
+    ],
+    "seq_len": 16,
+    "epochs": 2,
+    "batch_size": 128,
+    "hidden_dim": 256,
+    "learning_rate": 0.0001,
+    "validation_fraction": 0.15,
+    "selection_objective": "capacity_mae",
+    "patience": 2,
+    "voltage_start": 3.9,
+    "voltage_end": 4.0,
+    "feature_source": "10-point incremental charge-capacity curve over 3.9-4 V"
+  }
+}

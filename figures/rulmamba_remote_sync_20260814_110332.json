@@ -1,0 +1,654 @@
+{
+  "server": "connect.westb.seetacloud.com:52276",
+  "remote_root": "/root/autodl-tmp/version2026draft",
+  "backup_root": "remote_sync_backups\\rulmamba_20260814_110332",
+  "counts": {
+    "added": 1,
+    "updated": 1,
+    "identical": 105
+  },
+  "files": [
+    {
+      "path": ".export_best_rulmamba_hpo.py",
+      "status": "added",
+      "remote_sha256": "7ee6c74bfb07d78b04b85fc56413dcd91b4b567f651d680f353d59c599495036",
+      "previous_local_sha256": null
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/Base_MGI_Aligned.yaml",
+      "status": "identical",
+      "remote_sha256": "e2804629a2dbf10cecf04ac55f692ac2362182b61330b5571f28ed1f835a259b",
+      "previous_local_sha256": "e2804629a2dbf10cecf04ac55f692ac2362182b61330b5571f28ed1f835a259b"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/Base_RULMamba_Native.yaml",
+      "status": "identical",
+      "remote_sha256": "ab2c97c724fe9a36da336cfdb44ff25edd16e4291a638db3059fcb93c6dcb1bb",
+      "previous_local_sha256": "ab2c97c724fe9a36da336cfdb44ff25edd16e4291a638db3059fcb93c6dcb1bb"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/Base_Version3_PaperTraining_Strict.yaml",
+      "status": "identical",
+      "remote_sha256": "d48fcdd5c4019ccdf68ac7ac6b9dbe2c0d91bcbc1dae0c4844d5801148332cc5",
+      "previous_local_sha256": "d48fcdd5c4019ccdf68ac7ac6b9dbe2c0d91bcbc1dae0c4844d5801148332cc5"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/RULMamba_CALCE_TPE_128.yaml",
+      "status": "identical",
+      "remote_sha256": "fc43eca3adaf07293bcd74080178150130f17986960aa841be53682169350524",
+      "previous_local_sha256": "fc43eca3adaf07293bcd74080178150130f17986960aa841be53682169350524"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/RULMamba_LongSequence_Paper.yaml",
+      "status": "identical",
+      "remote_sha256": "ee10c0044f85855d83fc97af187bc0569db54c8a3b1676514816ddf435dbcd4c",
+      "previous_local_sha256": "ee10c0044f85855d83fc97af187bc0569db54c8a3b1676514816ddf435dbcd4c"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/RULMamba_MGI_Aligned.yaml",
+      "status": "identical",
+      "remote_sha256": "3f5188625465ab3570998bcc88746f295ea36560ceaab7f8147203eb4920b89e",
+      "previous_local_sha256": "3f5188625465ab3570998bcc88746f295ea36560ceaab7f8147203eb4920b89e"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/RULMamba_Native.yaml",
+      "status": "identical",
+      "remote_sha256": "3f5188625465ab3570998bcc88746f295ea36560ceaab7f8147203eb4920b89e",
+      "previous_local_sha256": "3f5188625465ab3570998bcc88746f295ea36560ceaab7f8147203eb4920b89e"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/RULMamba_Native_AuthorSeeds.yaml",
+      "status": "identical",
+      "remote_sha256": "8d4797de0b3e0d4f6bd6f6c7eac621186061754b138a2428855756bcf2df6b92",
+      "previous_local_sha256": "8d4797de0b3e0d4f6bd6f6c7eac621186061754b138a2428855756bcf2df6b92"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/RULMamba_PaperFaithful_D16_L1.yaml",
+      "status": "identical",
+      "remote_sha256": "587bc9cda2289a1282b3f740237ee6899253f2b2936c29d145e5222202cf2c39",
+      "previous_local_sha256": "587bc9cda2289a1282b3f740237ee6899253f2b2936c29d145e5222202cf2c39"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/RULMamba_PaperFaithful_D16_L2_Drop001.yaml",
+      "status": "identical",
+      "remote_sha256": "85640c5a93e90012fab8f0feb2713f72274408063c9999fab78423f29dd5aec4",
+      "previous_local_sha256": "85640c5a93e90012fab8f0feb2713f72274408063c9999fab78423f29dd5aec4"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/CALCE/Univariable/RULMamba_PaperFaithful_D48_L2.yaml",
+      "status": "identical",
+      "remote_sha256": "36dd1edc77831d13374046d153e3686921968a0bef3049c887de2c82e3262b7e",
+      "previous_local_sha256": "36dd1edc77831d13374046d153e3686921968a0bef3049c887de2c82e3262b7e"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/Autoformer.yaml",
+      "status": "identical",
+      "remote_sha256": "a5d5f9111be65bd2bfd4925192e62577dca6746a553c7daab5ee17bfe0992857",
+      "previous_local_sha256": "a5d5f9111be65bd2bfd4925192e62577dca6746a553c7daab5ee17bfe0992857"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/Base.yaml",
+      "status": "identical",
+      "remote_sha256": "6d2f9e312a3bd343ebc507e7e9e59b24ca17cfad2c0b8183e946d1bff1d25a6a",
+      "previous_local_sha256": "6d2f9e312a3bd343ebc507e7e9e59b24ca17cfad2c0b8183e946d1bff1d25a6a"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/Base_AuthorPublic_Exact.yaml",
+      "status": "identical",
+      "remote_sha256": "d072ef10c76b8cd2c309e9f53f578e5abe32254a1566295ed8a76223aa063f1e",
+      "previous_local_sha256": "d072ef10c76b8cd2c309e9f53f578e5abe32254a1566295ed8a76223aa063f1e"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/Base_AuthorPublic_PaperTrain.yaml",
+      "status": "identical",
+      "remote_sha256": "e1eef335d8d6cde9ebd08e922638d3f92176439331c0ac0e9b0c8e5790acbb1e",
+      "previous_local_sha256": "e1eef335d8d6cde9ebd08e922638d3f92176439331c0ac0e9b0c8e5790acbb1e"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/FEDformer.yaml",
+      "status": "identical",
+      "remote_sha256": "ddd713a2863464fbdb329cb93ccb1e7bb118adcacd8fc31bd2521491d2b443c4",
+      "previous_local_sha256": "ddd713a2863464fbdb329cb93ccb1e7bb118adcacd8fc31bd2521491d2b443c4"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/MambaSimple.yaml",
+      "status": "identical",
+      "remote_sha256": "689e7a193102d93cab4d5051c0da3d7c9cb30dbcf37caf7b3e4531c177d277cb",
+      "previous_local_sha256": "689e7a193102d93cab4d5051c0da3d7c9cb30dbcf37caf7b3e4531c177d277cb"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/PatchTST.yaml",
+      "status": "identical",
+      "remote_sha256": "c86a93fc233b1ec4df1d28549aa5a8a618c1e92ba63374e2e73ea0e782a35afa",
+      "previous_local_sha256": "c86a93fc233b1ec4df1d28549aa5a8a618c1e92ba63374e2e73ea0e782a35afa"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/PathFormer.yaml",
+      "status": "identical",
+      "remote_sha256": "9b9a78977980ba19e0212819c2fd84f2a913d82c2b95a6165d523226c5dd500d",
+      "previous_local_sha256": "9b9a78977980ba19e0212819c2fd84f2a913d82c2b95a6165d523226c5dd500d"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/RULMamba.yaml",
+      "status": "identical",
+      "remote_sha256": "698b63ea0e1bc55fd08885eb6c6b00361d4f1260331dc6ecbd9bc5b8f5181395",
+      "previous_local_sha256": "698b63ea0e1bc55fd08885eb6c6b00361d4f1260331dc6ecbd9bc5b8f5181395"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/RULMamba_AuthorPublic.yaml",
+      "status": "identical",
+      "remote_sha256": "19254de0620f0a0b4c8cd4c8a8c1aa09366201e390469ab7083818db5d739182",
+      "previous_local_sha256": "19254de0620f0a0b4c8cd4c8a8c1aa09366201e390469ab7083818db5d739182"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/TimeMixer.yaml",
+      "status": "identical",
+      "remote_sha256": "7c61df3805f6f5a93b17afd0fb09cb36743642ff5c93feb0db3874c4dd5b2a9c",
+      "previous_local_sha256": "7c61df3805f6f5a93b17afd0fb09cb36743642ff5c93feb0db3874c4dd5b2a9c"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/NASA/Univariable/TimesNet.yaml",
+      "status": "identical",
+      "remote_sha256": "a6d0f53bf76fdd6fa22ff4d68d22988a60aea0084136846e60daaccfa4239b7d",
+      "previous_local_sha256": "a6d0f53bf76fdd6fa22ff4d68d22988a60aea0084136846e60daaccfa4239b7d"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/Autoformer.yaml",
+      "status": "identical",
+      "remote_sha256": "a5d5f9111be65bd2bfd4925192e62577dca6746a553c7daab5ee17bfe0992857",
+      "previous_local_sha256": "a5d5f9111be65bd2bfd4925192e62577dca6746a553c7daab5ee17bfe0992857"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/Base.yaml",
+      "status": "identical",
+      "remote_sha256": "dd91fcf1cef20419f3e54b4db10e271d38744e4c4f5314069985eed5e440dde0",
+      "previous_local_sha256": "dd91fcf1cef20419f3e54b4db10e271d38744e4c4f5314069985eed5e440dde0"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/FEDformer.yaml",
+      "status": "identical",
+      "remote_sha256": "9ad9a1b05d4ee49a57e9c5ae18ff5e3f7929bba05ea9caa1da38e8a3391a575d",
+      "previous_local_sha256": "9ad9a1b05d4ee49a57e9c5ae18ff5e3f7929bba05ea9caa1da38e8a3391a575d"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/MambaSimple.yaml",
+      "status": "identical",
+      "remote_sha256": "689e7a193102d93cab4d5051c0da3d7c9cb30dbcf37caf7b3e4531c177d277cb",
+      "previous_local_sha256": "689e7a193102d93cab4d5051c0da3d7c9cb30dbcf37caf7b3e4531c177d277cb"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/PatchTST.yaml",
+      "status": "identical",
+      "remote_sha256": "43860e79d2f9c40c73d2db581b097369b4a2c49bc33736d0975ed8ec743379d5",
+      "previous_local_sha256": "43860e79d2f9c40c73d2db581b097369b4a2c49bc33736d0975ed8ec743379d5"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/PathFormer.yaml",
+      "status": "identical",
+      "remote_sha256": "d88272285d2ace72096da9e9c57e391dd3f8c9d4b339f57887da05d263b1536b",
+      "previous_local_sha256": "d88272285d2ace72096da9e9c57e391dd3f8c9d4b339f57887da05d263b1536b"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/RULMamba.yaml",
+      "status": "identical",
+      "remote_sha256": "d32830288c1bada78a04aed0f3e18917a18478f05fcc2585eb14ba2a467c74e4",
+      "previous_local_sha256": "d32830288c1bada78a04aed0f3e18917a18478f05fcc2585eb14ba2a467c74e4"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/TimeMixer.yaml",
+      "status": "identical",
+      "remote_sha256": "665ace2527b6ba9915a8b9527b445b22715262bd642d2329cf612395b27c3b67",
+      "previous_local_sha256": "665ace2527b6ba9915a8b9527b445b22715262bd642d2329cf612395b27c3b67"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/Oxford/Univariable/TimesNet.yaml",
+      "status": "identical",
+      "remote_sha256": "d8d9f6fe7e24bd30fb3355c18b35b6c565600c74b2d46b3a8b343bbfddd2f814",
+      "previous_local_sha256": "d8d9f6fe7e24bd30fb3355c18b35b6c565600c74b2d46b3a8b343bbfddd2f814"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/Autoformer.yaml",
+      "status": "identical",
+      "remote_sha256": "056e5be4aa1533877f10bafcd428398e1496bc21b2866e8aaa2d8cd614de6a13",
+      "previous_local_sha256": "056e5be4aa1533877f10bafcd428398e1496bc21b2866e8aaa2d8cd614de6a13"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/Base.yaml",
+      "status": "identical",
+      "remote_sha256": "1c107c2aff14ca3be605f067fc0d846ef8deb1653c1d0a4ad61d11fbe11d7aec",
+      "previous_local_sha256": "1c107c2aff14ca3be605f067fc0d846ef8deb1653c1d0a4ad61d11fbe11d7aec"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/FEDformer.yaml",
+      "status": "identical",
+      "remote_sha256": "e88e0224a9e6291f5a28ffdc8cf411e84744fe1a1e5a21962de9294222d7c283",
+      "previous_local_sha256": "e88e0224a9e6291f5a28ffdc8cf411e84744fe1a1e5a21962de9294222d7c283"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/MambaSimple.yaml",
+      "status": "identical",
+      "remote_sha256": "4366ebb4a50deab26b493de0b14d35ca2ef62d110831615a5151ddeefb3e7ee1",
+      "previous_local_sha256": "4366ebb4a50deab26b493de0b14d35ca2ef62d110831615a5151ddeefb3e7ee1"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/PatchTST.yaml",
+      "status": "identical",
+      "remote_sha256": "a97ed5baab8e563656465c550fd2cf8c283372b3a2a1908bb7b1a56b58558d40",
+      "previous_local_sha256": "a97ed5baab8e563656465c550fd2cf8c283372b3a2a1908bb7b1a56b58558d40"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/PathFormer.yaml",
+      "status": "identical",
+      "remote_sha256": "f1edbd7d09ed87af1ba3ae881296e5bbbab714a98e8dfef2ad999857c216c2f2",
+      "previous_local_sha256": "f1edbd7d09ed87af1ba3ae881296e5bbbab714a98e8dfef2ad999857c216c2f2"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/RULMambaVAN.yaml",
+      "status": "identical",
+      "remote_sha256": "d38ad7b6544931a828624b5d3f5250e0596bdbc1ce4996afa3eb49ba7105aea4",
+      "previous_local_sha256": "d38ad7b6544931a828624b5d3f5250e0596bdbc1ce4996afa3eb49ba7105aea4"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/TimeMixer.yaml",
+      "status": "identical",
+      "remote_sha256": "36c4f3eefb762280f85d3594af8db94439c783ef721cd65b0bc10906260f8a6f",
+      "previous_local_sha256": "36c4f3eefb762280f85d3594af8db94439c783ef721cd65b0bc10906260f8a6f"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Multivariable/TimesNet.yaml",
+      "status": "identical",
+      "remote_sha256": "06d256c06c89867591a70ff93d3ea5dbf65785e025c9b9f5357315b335c3db1c",
+      "previous_local_sha256": "06d256c06c89867591a70ff93d3ea5dbf65785e025c9b9f5357315b335c3db1c"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/Autoformer.yaml",
+      "status": "identical",
+      "remote_sha256": "9caba1af55598eaae3c1d2934f8498dff7a5df8c00b9a4a0b91cf9cf05fbf05c",
+      "previous_local_sha256": "9caba1af55598eaae3c1d2934f8498dff7a5df8c00b9a4a0b91cf9cf05fbf05c"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/Base.yaml",
+      "status": "identical",
+      "remote_sha256": "f0a9e0e7a8d2c6389606c7eeeab94053cf167dd30e97c3629a4345e3d3b97871",
+      "previous_local_sha256": "f0a9e0e7a8d2c6389606c7eeeab94053cf167dd30e97c3629a4345e3d3b97871"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/FEDformer.yaml",
+      "status": "identical",
+      "remote_sha256": "67c2d70b7e2210a23e0d8397b282ca9068752f204a579b6d56644f39a2c61647",
+      "previous_local_sha256": "67c2d70b7e2210a23e0d8397b282ca9068752f204a579b6d56644f39a2c61647"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/MambaSimple.yaml",
+      "status": "identical",
+      "remote_sha256": "689e7a193102d93cab4d5051c0da3d7c9cb30dbcf37caf7b3e4531c177d277cb",
+      "previous_local_sha256": "689e7a193102d93cab4d5051c0da3d7c9cb30dbcf37caf7b3e4531c177d277cb"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/PatchTST.yaml",
+      "status": "identical",
+      "remote_sha256": "4b884926adf259c42459e5a1e27c2de19d95b402a8c76671a852dc6c581f2a4b",
+      "previous_local_sha256": "4b884926adf259c42459e5a1e27c2de19d95b402a8c76671a852dc6c581f2a4b"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/PathFormer.yaml",
+      "status": "identical",
+      "remote_sha256": "9fe502c0484434b846fcb278723e46457cd80e25a55081b4c1dbfaf8a4c308bf",
+      "previous_local_sha256": "9fe502c0484434b846fcb278723e46457cd80e25a55081b4c1dbfaf8a4c308bf"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/RULMamba.yaml",
+      "status": "identical",
+      "remote_sha256": "934393e2df11644fd76bfa987bc53bc6a9d10dcfe093255e6d4c3ff2f34d67d9",
+      "previous_local_sha256": "934393e2df11644fd76bfa987bc53bc6a9d10dcfe093255e6d4c3ff2f34d67d9"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/TimeMixer.yaml",
+      "status": "identical",
+      "remote_sha256": "58d2c22c3d59e4dbefc41f710de4f29c9ebea6120ff731f6f58520c01574e525",
+      "previous_local_sha256": "58d2c22c3d59e4dbefc41f710de4f29c9ebea6120ff731f6f58520c01574e525"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Configs/TJU/Univariable/TimesNet.yaml",
+      "status": "identical",
+      "remote_sha256": "2a6cbd42f9f31ed86274ce1ee24ed00d470fb00e59a4aad44b1997e67a3e8dd1",
+      "previous_local_sha256": "2a6cbd42f9f31ed86274ce1ee24ed00d470fb00e59a4aad44b1997e67a3e8dd1"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Autoformer.py",
+      "status": "identical",
+      "remote_sha256": "65da48bb10b74e497810d784e9a8f30e8caa2a14c3e791ba4010fc04d009e9eb",
+      "previous_local_sha256": "65da48bb10b74e497810d784e9a8f30e8caa2a14c3e791ba4010fc04d009e9eb"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/FEDformer.py",
+      "status": "identical",
+      "remote_sha256": "e2916813afb7ba630efe3c11d05680e6f0cb1d61c1a3dcefb8d3c09b1beaf749",
+      "previous_local_sha256": "e2916813afb7ba630efe3c11d05680e6f0cb1d61c1a3dcefb8d3c09b1beaf749"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/AMS.py",
+      "status": "identical",
+      "remote_sha256": "51ebfadd017102a23ea3bab836a966546fe9802bb2e969b7e8ad685ada231496",
+      "previous_local_sha256": "51ebfadd017102a23ea3bab836a966546fe9802bb2e969b7e8ad685ada231496"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Auto_Correlation.py",
+      "status": "identical",
+      "remote_sha256": "88d6984cb1d1dc51ccebf66f254f06266a0f2343a3a1bcc73f2103c97e0286ec",
+      "previous_local_sha256": "88d6984cb1d1dc51ccebf66f254f06266a0f2343a3a1bcc73f2103c97e0286ec"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Autoformer_Enc_Dec.py",
+      "status": "identical",
+      "remote_sha256": "48745b4bb647355e9845792a855df9c59fd7df7fcc664c765351fec390c4073e",
+      "previous_local_sha256": "48745b4bb647355e9845792a855df9c59fd7df7fcc664c765351fec390c4073e"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Conv_Blocks.py",
+      "status": "identical",
+      "remote_sha256": "8ea9433d885d00f0d3c9beed0289f2c2fdb8715c63393f676ba5c304ecd5948f",
+      "previous_local_sha256": "8ea9433d885d00f0d3c9beed0289f2c2fdb8715c63393f676ba5c304ecd5948f"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Crossformer_Enc_Dec.py",
+      "status": "identical",
+      "remote_sha256": "9bc95509981e230b19726d23b9b1eba10e0ad4edf0ecfa51e1aefb52d133b249",
+      "previous_local_sha256": "9bc95509981e230b19726d23b9b1eba10e0ad4edf0ecfa51e1aefb52d133b249"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/ETSformer_Enc_Dec.py",
+      "status": "identical",
+      "remote_sha256": "6898d651ab138a2601cc4a460dc895d094fec10a57bf38c9bbd699a58c470491",
+      "previous_local_sha256": "6898d651ab138a2601cc4a460dc895d094fec10a57bf38c9bbd699a58c470491"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Embed.py",
+      "status": "identical",
+      "remote_sha256": "a2eae55904d2b016fbf085241ce7d02dc4e2aeabaf699a8f71307d2cf3e6c57a",
+      "previous_local_sha256": "a2eae55904d2b016fbf085241ce7d02dc4e2aeabaf699a8f71307d2cf3e6c57a"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Embedding.py",
+      "status": "identical",
+      "remote_sha256": "c080d6ce2ed1e6a149590ead57417b8ac4179372f381bdc4d2777f60ceb4db11",
+      "previous_local_sha256": "c080d6ce2ed1e6a149590ead57417b8ac4179372f381bdc4d2777f60ceb4db11"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/FFT_Compat.py",
+      "status": "identical",
+      "remote_sha256": "048f640a7270d89022f28d5facadb6fea007305480178b111f9af1ceacd5b24a",
+      "previous_local_sha256": "048f640a7270d89022f28d5facadb6fea007305480178b111f9af1ceacd5b24a"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Fourier_Correlation.py",
+      "status": "identical",
+      "remote_sha256": "35f9a743a4d919390062747ed87a265efcc335af30bf340db4984f937240b184",
+      "previous_local_sha256": "35f9a743a4d919390062747ed87a265efcc335af30bf340db4984f937240b184"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Layer.py",
+      "status": "identical",
+      "remote_sha256": "64b037613a13ba9d9685f9e42470983e8c1f4d4b3694a8a3ec2f8beea808f1a8",
+      "previous_local_sha256": "64b037613a13ba9d9685f9e42470983e8c1f4d4b3694a8a3ec2f8beea808f1a8"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Multi_Wavelet_Correlation.py",
+      "status": "identical",
+      "remote_sha256": "79b27d9f4fd99cdb4926509f000768dfc81abc4b745e062976d4a56bcd3ed55f",
+      "previous_local_sha256": "79b27d9f4fd99cdb4926509f000768dfc81abc4b745e062976d4a56bcd3ed55f"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Other.py",
+      "status": "identical",
+      "remote_sha256": "38247e78f2e9da66ecbfd95dd77341953378b33a6d823d35cb8a95874d471bf2",
+      "previous_local_sha256": "38247e78f2e9da66ecbfd95dd77341953378b33a6d823d35cb8a95874d471bf2"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Pyraformer_Enc_Dec.py",
+      "status": "identical",
+      "remote_sha256": "b40c32b0b8d5d0e5e2a79b2e5af2058a5f7e85be7f109bf7683d4f958095f2ac",
+      "previous_local_sha256": "b40c32b0b8d5d0e5e2a79b2e5af2058a5f7e85be7f109bf7683d4f958095f2ac"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/RevIN.py",
+      "status": "identical",
+      "remote_sha256": "1e08d0b3679f4ef79ac7f98a7f719f8d7f8a04595022ed34f702c7d70c0c4d90",
+      "previous_local_sha256": "1e08d0b3679f4ef79ac7f98a7f719f8d7f8a04595022ed34f702c7d70c0c4d90"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Self_Attention_Family.py",
+      "status": "identical",
+      "remote_sha256": "2430b69b179396ea55ad4d2e6506303c7b7e4b1e828ceebb503b11dfef52b435",
+      "previous_local_sha256": "2430b69b179396ea55ad4d2e6506303c7b7e4b1e828ceebb503b11dfef52b435"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Standard_Norm.py",
+      "status": "identical",
+      "remote_sha256": "3f690dc5fc0e395d4f1ffe6396717548d18bd04f4518258308bbe5f392703f5f",
+      "previous_local_sha256": "3f690dc5fc0e395d4f1ffe6396717548d18bd04f4518258308bbe5f392703f5f"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/Transformer_Enc_Dec.py",
+      "status": "identical",
+      "remote_sha256": "7b26f4459735c341f161011f6bc24b9deb8ecc3bcf61e4f15431998272a44fb4",
+      "previous_local_sha256": "7b26f4459735c341f161011f6bc24b9deb8ecc3bcf61e4f15431998272a44fb4"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Layers/__init__.py",
+      "status": "identical",
+      "remote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "previous_local_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/MambaSimple.py",
+      "status": "identical",
+      "remote_sha256": "0f3cc88341773ffbc730db6ed1b07029e895c31cdc7ddf1faa2668ecffb8fbbc",
+      "previous_local_sha256": "0f3cc88341773ffbc730db6ed1b07029e895c31cdc7ddf1faa2668ecffb8fbbc"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Metrics.py",
+      "status": "identical",
+      "remote_sha256": "842efdbd24feae4f49418de66c15d2c48dce3e1984dcae1847a2a83e8f7c3999",
+      "previous_local_sha256": "842efdbd24feae4f49418de66c15d2c48dce3e1984dcae1847a2a83e8f7c3999"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/Optimize.py",
+      "status": "identical",
+      "remote_sha256": "9e53b4774add0afad41a8ef48937ee8f265c45dfc71d7d2f793c7c81415969bb",
+      "previous_local_sha256": "9e53b4774add0afad41a8ef48937ee8f265c45dfc71d7d2f793c7c81415969bb"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/PatchTST.py",
+      "status": "identical",
+      "remote_sha256": "a9e75a0b43a93b9b8707b1d354aa908ff59de8941d6534b5acb9e10499e98648",
+      "previous_local_sha256": "a9e75a0b43a93b9b8707b1d354aa908ff59de8941d6534b5acb9e10499e98648"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/PathFormer.py",
+      "status": "identical",
+      "remote_sha256": "707cf779374c4732064e55db58ce333d5178ae272adf45a9f0318d2a1f0c0659",
+      "previous_local_sha256": "707cf779374c4732064e55db58ce333d5178ae272adf45a9f0318d2a1f0c0659"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/RULMamba.py",
+      "status": "identical",
+      "remote_sha256": "84621bf0d6853ebfae8bbf62e0d4f52c0dfd4fd9ecf82556e07f0a3f6598d1bf",
+      "previous_local_sha256": "84621bf0d6853ebfae8bbf62e0d4f52c0dfd4fd9ecf82556e07f0a3f6598d1bf"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/RULMambaVAN.py",
+      "status": "identical",
+      "remote_sha256": "d6df0935a3b8ea4fcfaa36fb2cc51d4b64171f1cbfa8a2df08cdde228a8a706d",
+      "previous_local_sha256": "d6df0935a3b8ea4fcfaa36fb2cc51d4b64171f1cbfa8a2df08cdde228a8a706d"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/TimeMixer.py",
+      "status": "identical",
+      "remote_sha256": "1b0dc58e37f4520f0eba541a4cff8ee98344abd41c52da6802c7e80775a03814",
+      "previous_local_sha256": "1b0dc58e37f4520f0eba541a4cff8ee98344abd41c52da6802c7e80775a03814"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Models/TimesNet.py",
+      "status": "identical",
+      "remote_sha256": "8ae620d194e7aa0d70e89763623dba9c6371bfa22ba3c68b6829f1a61579dbd4",
+      "previous_local_sha256": "8ae620d194e7aa0d70e89763623dba9c6371bfa22ba3c68b6829f1a61579dbd4"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/README.md",
+      "status": "identical",
+      "remote_sha256": "f1b9ecc0827002420164e9b869929ab806458bd331b6625919190b6135dcc53f",
+      "previous_local_sha256": "f1b9ecc0827002420164e9b869929ab806458bd331b6625919190b6135dcc53f"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/REPRODUCTION_AUDIT.md",
+      "status": "identical",
+      "remote_sha256": "c0b2402702feffe3f5fcb005998fa5d7e4605e6b228d6921afd974f782dca570",
+      "previous_local_sha256": "c0b2402702feffe3f5fcb005998fa5d7e4605e6b228d6921afd974f782dca570"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/CALCE_Univariable_RUL_Prediction/Optimize_CALCE_RULMamba_AuthorSource.py",
+      "status": "identical",
+      "remote_sha256": "bf4a72aaa3653d9cc9513666c0e59d40042dfe387c00162f462134e58c7d41a7",
+      "previous_local_sha256": "bf4a72aaa3653d9cc9513666c0e59d40042dfe387c00162f462134e58c7d41a7"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/CALCE_Univariable_RUL_Prediction/Train_CALCE_Univariable.py",
+      "status": "identical",
+      "remote_sha256": "2b941d23d2bbc3402d72694d232685c010693a674bfbf5561b11a57e0b355c63",
+      "previous_local_sha256": "2b941d23d2bbc3402d72694d232685c010693a674bfbf5561b11a57e0b355c63"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/Charts_Creation/Plot_Capacity_Prediction_Curves.py",
+      "status": "identical",
+      "remote_sha256": "defeec40602cb836d8039ee18acd281b958e26a2e2e9cd06b366d16bcea87621",
+      "previous_local_sha256": "defeec40602cb836d8039ee18acd281b958e26a2e2e9cd06b366d16bcea87621"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/Charts_Creation/Plot_Capacity_Prediction_Curves.sh",
+      "status": "identical",
+      "remote_sha256": "f831bbd8611d5189c7b6f3950d12fc9ab9e7824bbb03396892841448fb59b4d0",
+      "previous_local_sha256": "f831bbd8611d5189c7b6f3950d12fc9ab9e7824bbb03396892841448fb59b4d0"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/Data_Process/NASA_Data_Process.py",
+      "status": "identical",
+      "remote_sha256": "b799d88e164262460a81d74698e18286345435b21ff7a93ff97db25080bd06dc",
+      "previous_local_sha256": "b799d88e164262460a81d74698e18286345435b21ff7a93ff97db25080bd06dc"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/Data_Process/Oxford_Data_Process.py",
+      "status": "identical",
+      "remote_sha256": "7e0b49363125a3034428c3b67070dfc697c106a2b4c40a66fc858dd17ad414ec",
+      "previous_local_sha256": "7e0b49363125a3034428c3b67070dfc697c106a2b4c40a66fc858dd17ad414ec"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/Data_Process/TJU_Data_Process.py",
+      "status": "identical",
+      "remote_sha256": "3bba82b51751f86af81cfbf9e923b7219e4d14c8eb03ca57d5032ee153008a39",
+      "previous_local_sha256": "3bba82b51751f86af81cfbf9e923b7219e4d14c8eb03ca57d5032ee153008a39"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/NASA_Univariable_RUL_Prediction/Optimize_NASA_Univariable_RULMamba.py",
+      "status": "identical",
+      "remote_sha256": "a4810488ca621851ce85779e4d35a78839f5667eb66aca51362b1c47993ff376",
+      "previous_local_sha256": "a4810488ca621851ce85779e4d35a78839f5667eb66aca51362b1c47993ff376"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/NASA_Univariable_RUL_Prediction/Train_NASA_Univariable.py",
+      "status": "identical",
+      "remote_sha256": "26d48d2acfcdfb48d9c8a063b416a8843284a9ca4e47cfa6f2531b5c17870feb",
+      "previous_local_sha256": "26d48d2acfcdfb48d9c8a063b416a8843284a9ca4e47cfa6f2531b5c17870feb"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/NASA_Univariable_RUL_Prediction/Train_NASA_Univariable.sh",
+      "status": "identical",
+      "remote_sha256": "04cbb30bc985c89704e970ce40c9b344e2996628664d238484a56595aaa56ee1",
+      "previous_local_sha256": "04cbb30bc985c89704e970ce40c9b344e2996628664d238484a56595aaa56ee1"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/Oxford_Univariable_RUL_Prediction/Optimize_Oxford_Univariable_RULMamba.py",
+      "status": "identical",
+      "remote_sha256": "924d5bbafc8068d1f3342beb36a94641ab86304f039f70d60cb955b8318e2483",
+      "previous_local_sha256": "924d5bbafc8068d1f3342beb36a94641ab86304f039f70d60cb955b8318e2483"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/Oxford_Univariable_RUL_Prediction/Train_Oxford_Univariable.py",
+      "status": "identical",
+      "remote_sha256": "9270d1841adfae84da833237345b5e42cf86cb977ba9f54e4fd57a994d9bcd0c",
+      "previous_local_sha256": "9270d1841adfae84da833237345b5e42cf86cb977ba9f54e4fd57a994d9bcd0c"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/Oxford_Univariable_RUL_Prediction/Train_Oxford_Univariable.sh",
+      "status": "identical",
+      "remote_sha256": "f6d30faead025b3369a4756aada6471414a3f3d47483f3f55e9fb22b7d047c2d",
+      "previous_local_sha256": "f6d30faead025b3369a4756aada6471414a3f3d47483f3f55e9fb22b7d047c2d"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/TJU_Multivariable_RUL_Prediction/Optimize_TJU_Multivariable_RULMambaVAN.py",
+      "status": "identical",
+      "remote_sha256": "7753b0b749cefc1804e504972242ff5dc0ef1fb96403af51ee089d9ce1e564de",
+      "previous_local_sha256": "7753b0b749cefc1804e504972242ff5dc0ef1fb96403af51ee089d9ce1e564de"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/TJU_Multivariable_RUL_Prediction/Train_TJU_Multivariable.py",
+      "status": "identical",
+      "remote_sha256": "fc5ab33fbd2509d6c73fe2a962a8cecd7820ba1228ebe152b7926357cb25e62d",
+      "previous_local_sha256": "fc5ab33fbd2509d6c73fe2a962a8cecd7820ba1228ebe152b7926357cb25e62d"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/TJU_Multivariable_RUL_Prediction/Train_TJU_Multivariable.sh",
+      "status": "identical",
+      "remote_sha256": "f51263c3d79dd48c0c63525cb25a402b6d485e405633d7bee5ae3ca8be4ab5d7",
+      "previous_local_sha256": "f51263c3d79dd48c0c63525cb25a402b6d485e405633d7bee5ae3ca8be4ab5d7"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/TJU_Univariable_RUL_Prediction/Optimize_TJU_Univariable_RULMamba.py",
+      "status": "identical",
+      "remote_sha256": "df25d1b22c266eb8c5732e88922dc911b74edad5da9b1578bf96e28323fba1e5",
+      "previous_local_sha256": "df25d1b22c266eb8c5732e88922dc911b74edad5da9b1578bf96e28323fba1e5"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/TJU_Univariable_RUL_Prediction/Train_TJU_Univariable.py",
+      "status": "identical",
+      "remote_sha256": "741544b9083ed779683f1f8d019131cdef2d238a02602f6ffe3d07495709ccc4",
+      "previous_local_sha256": "741544b9083ed779683f1f8d019131cdef2d238a02602f6ffe3d07495709ccc4"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/Scripts/TJU_Univariable_RUL_Prediction/Train_TJU_Univariable.sh",
+      "status": "identical",
+      "remote_sha256": "6463dbac28df6913f55e44ceec9e22158b3509f5c65ff4f6ba48a86fc589388c",
+      "previous_local_sha256": "6463dbac28df6913f55e44ceec9e22158b3509f5c65ff4f6ba48a86fc589388c"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/requirements.txt",
+      "status": "identical",
+      "remote_sha256": "e503d23cd0b7311d7617464c255ca7262f383043e2b6724ca24794cf5abfbb48",
+      "previous_local_sha256": "e503d23cd0b7311d7617464c255ca7262f383043e2b6724ca24794cf5abfbb48"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/result1.md",
+      "status": "identical",
+      "remote_sha256": "8f67e3a55106e4b589def78bc0808d0d428cc6b46e83c6eb1faa7b88bc462a48",
+      "previous_local_sha256": "8f67e3a55106e4b589def78bc0808d0d428cc6b46e83c6eb1faa7b88bc462a48"
+    },
+    {
+      "path": "Compare-Models/RUL-Mamba/rulmamba_env.yaml",
+      "status": "identical",
+      "remote_sha256": "648b781e745939cbb977ec000332f77b587ac49f5ad95d111bc002b16721cbb7",
+      "previous_local_sha256": "648b781e745939cbb977ec000332f77b587ac49f5ad95d111bc002b16721cbb7"
+    },
+    {
+      "path": "Compare-Models/run_native_capacity_models.py",
+      "status": "updated",
+      "remote_sha256": "45036e120dc8070af05587f57d56cddbd162fe68825129b856922af07f814529",
+      "previous_local_sha256": "3db484a92ad23b286c9741b2104d0c3ef05c84114a69941ca377fabd64cb72cb"
+    },
+    {
+      "path": "comparison_protocol.py",
+      "status": "identical",
+      "remote_sha256": "0a38bae6baa61155a08deade856b583d542bad6e4341b6b1acff2f7e735225bc",
+      "previous_local_sha256": "0a38bae6baa61155a08deade856b583d542bad6e4341b6b1acff2f7e735225bc"
+    }
+  ]
+}

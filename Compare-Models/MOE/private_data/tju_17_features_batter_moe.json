@@ -1,0 +1,47 @@
+{
+  "version": "wang-segmented-full-charge-features+batter-isolated-global3sigma-v6",
+  "scope": "BATTER-MoE private; shared datasets are not modified",
+  "sources": {
+    "feature_framework": "Wang et al., Nature Communications 15, 4332 (2024)",
+    "cleaning": "BATTER-MoE Sec. IV-A"
+  },
+  "raw_files": {
+    "CY25-1": "CY25-05_1-#1.csv",
+    "CY25-2": "CY25-05_1-#2.csv",
+    "CY25-3": "CY25-05_1-#3.csv"
+  },
+  "feature_columns": [
+    "voltage mean",
+    "voltage std",
+    "voltage kurtosis",
+    "voltage skewness",
+    "voltage slope",
+    "voltage entropy",
+    "current mean",
+    "current std",
+    "current kurtosis",
+    "current skewness",
+    "current slope",
+    "current entropy",
+    "CC Q",
+    "CC charge time",
+    "CV Q",
+    "CV charge time",
+    "capacity"
+  ],
+  "cycle_counts": {
+    "CY25-1": 941,
+    "CY25-2": 960,
+    "CY25-3": 999
+  },
+  "capacity_unit": "Ah",
+  "feature_extraction": {
+    "charge_curve": "measured current > 10 mA",
+    "cc_stage": "control/mA > 0 within active charge",
+    "cv_stage": "control/V > 0 within active charge",
+    "slope": "ordinary least squares against time/s",
+    "entropy": "Shannon entropy of 20-bin histogram",
+    "capacity": "trapezoidal integration of longest contiguous measured-current discharge segment"
+  },
+  "cleaning": "feature-wise global 3-sigma using sample standard deviation; interpolate isolated candidates/missing only; retain adjacent runs"
+}

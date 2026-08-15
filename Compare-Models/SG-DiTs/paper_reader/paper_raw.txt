@@ -1,0 +1,1009 @@
+                                                                    Journal of Energy Storage 152 (2026) 120479
+
+
+                                                                      Contents lists available at ScienceDirect
+
+
+                                                                  Journal of Energy Storage
+                                                               journal homepage: www.elsevier.com/locate/est
+
+
+Research Papers
+
+SG-DiTs: A physics-informed diffusion-transformer hybrid framework for
+reliable battery RUL prediction
+Jing Sun a,* , Jingfan Gao a
+a
+    School of Information and Electronic Engineering, Shandong Technology and Business University, Yantai, 264005, China
+
+
+
+
+A R T I C L E I N F O                                        A B S T R A C T
+
+Keywords:                                                    Accurate Remaining Useful Life (RUL) prediction for lithium-ion batteries is critical for system safety but remains
+Lithium-ion batteries (LIBs)                                 challenged by the inherent stochasticity of degradation trajectories and pervasive operational noise. While
+Remaining Useful Life (RUL)                                  existing data-driven methods primarily treat RUL prediction as a deterministic regression task, they often
+Diffusion-transformer (DiTs)
+                                                             struggle to quantify prediction uncertainty and recover underlying aging trends from highly fluctuating data. To
+Multidimensional feature extraction
+                                                             bridge this gap, this study proposes Savitzky-Golay Diffusion Transformer (SG-DiTs), a novel physics-informed
+Savitzky-Golay filtering (SG)
+                                                             generative framework that integrates SG filtering with a hybrid Diffusion-Transformer network. Unlike tradi­
+                                                             tional approaches, the SG-DiTs framework reformulates prediction as a probabilistic generative process: it learns
+                                                             to reconstruct the pristine degradation trajectory from a Gaussian noise distribution conditioned on historical
+                                                             health indicators. Specifically, SG filtering is employed to stabilize the extraction of multidimensional featur­
+                                                             es—including Incremental Capacity Analysis (ICA), Shannon Entropy (SE), and Maximum Lyapunov Exponent
+                                                             (MLE)—has enhanced prediction accuracy. The Transformer backbone captures long-term temporal de­
+                                                             pendencies, while the diffusion mechanism models the aleatoric uncertainty of the aging process. Experimental
+                                                             validation on Toyota and CALCE datasets demonstrate that SG-DiTs significantly outperforms both deterministic
+                                                             baselines (CNN-LSTM, CNN-Trans, Transformer) and probabilistic benchmarks Gaussian Process Regression
+                                                             (GPR). By explicitly modeling degradation distributions, this method reduces the root mean square error (RMSE)
+                                                             by at least 42% and 70%, respectively, while demonstrating improved accuracy through trajectory reconstruc­
+                                                             tion, exceptional robustness, and interpretability.
+
+
+
+
+1. Introduction                                                                                       Existing RUL prediction techniques can be broadly divided into three
+                                                                                                  types: model-based methods, data-driven methods, and hybrid methods
+   With the profound transformation of the global energy architecture                             [3]. Model-based methods describe internal electrochemical reaction
+and the continuous advancement toward carbon neutrality, new energy                               kinetics, aging mechanisms, and thermo-electrical coupling character­
+vehicles (NEVs) are gradually becoming a key solution to alleviating the                          istics of batteries to construct mathematical models for predicting
+energy crisis and reducing carbon emissions [1]. Among them, LIBs, as a                           degradation trends and achieving accurate forecasting. Representative
+consequence of their superior energy storage density and extended                                 models include electrochemical models (EM) [4] and equivalent circuit
+operational lifespan, and relatively mature industrial chain, have                                models (ECM) [5]. Specifically, EM directly characterizes the mapping
+become the primary power source for electric vehicles (EVs). However,                             between internal dynamic behavior and external performance through
+with the rapid growth in the number and usage intensity of EVs, the                               equations, enabling insights into degradation mechanisms, but it suffers
+limitations of LIBs in terms of lifetime degradation, energy management,                          from high computational complexity. In contrast, ECM employs circuit
+and safety have become increasingly prominent. During long-cycle                                  parameters to represent battery dynamics, offering simplicity and ease
+operation, batteries are prone to issues such as capacity fading,                                 of implementation, though it requires frequent parameter updates. Peng
+increased internal resistance, and thermal runaway, which not only limit                          et al. [6] SOC estimation leveraging a model-based method for lithium
+driving range but also pose serious threats to vehicle safety [2]. There­                         iron phosphate (LiFePO4) batteries using a proportional-integral-
+fore, accurate forecasting battery RUL plays a significant role in Battery                        derivative (PID) observer with optimization extended Kalman filter
+Health Management (BHM) systems.                                                                  (EKF) and temperature-compensated open-circuit voltage (OCV)
+
+
+    * Corresponding author.
+      E-mail address: sunjing@sdu.edu.cn (J. Sun).
+
+https://doi.org/10.1016/j.est.2026.120479
+Received 24 October 2025; Received in revised form 23 December 2025; Accepted 7 January 2026
+Available online 23 January 2026
+2352-152X/© 2026 Elsevier Ltd. All rights are reserved, including those for text and data mining, AI training, and similar technologies.
+J. Sun and J. Gao                                                                                                  Journal of Energy Storage 152 (2026) 120479
+
+
+
+
+                                                  Fig. 1. The overall framework for RUL prediction.
+
+
+correction. Zhang et al. [7] proposes a model-based method that com­          reliability. For instance, Wei et al. [11] proposed a physics-informed
+bines a nonlinear-drift-driven Wiener process with a Markov chain             attention network that integrates electrical circuit models with atten­
+switching model and a fuzzy system. Tian et al. [8] combining a con­          tion mechanisms to accurately estimate the state of charge for heavy-
+volutional neural network-attention mechanism (CNN-Attention) with a          duty vehicles under complex dynamic conditions.
+Slime Mold Algorithm–Gaussian Process Regression (SMA-GPR) model,                 Data-driven methods [12–15] rely on extracting features from his­
+using singular value decomposition (SVMD) to extract capacity regen­          torical or real-time sensor data, and employ machine learning or deep
+eration and decay features. Kim et al. [9] integrating discrete wavelet       learning models to automatically learn battery degradation patterns,
+transform (DWT) with an improved semi-empirical (ISE) model using             thereby avoiding the complexity of mechanism-based modeling.
+the Moore-Penrose pseudoinverse (Pinv) to enhance capacity estimation         Representative studies include: Guo et al. [16] integrating empirical
+and early RUL prediction. Xu et al. [10] proposed a model-based               mode decomposition (EMD) and an gated recurrent unit (GRU) neural
+approach for fault prognosis in solid oxide fuel cells (SOFCs)                network, multi-feature inputs are utilized and EMD-based reconstruc­
+combining a particle-filter-aided degradation process model. Model-           tion is applied to achieve stable and accurate prediction of the RUL. Izadi
+based approaches offer strong interpretability and a clear physical           et al. [17] developed a WaveNet–GRU model for proton exchange
+foundation but are often limited by high computational costs and the          membrane fuel cells (PEMFCs) using deep neural networks and transfer
+need for parameter updates. In contrast, data-driven and hybrid ap­           learning, achieving accurate RUL prediction. Hu et al. [18] incorpo­
+proaches provide greater flexibility and adaptability, making them            rating a state-of-health (SOH) evaluation system, cluster interpolation
+increasingly suitable for practical RUL prediction under complex oper­        correction, dynamic voltage range selection via D-NSGA-II, and a multi-
+ating conditions. Furthermore, recent studies have begun to embed             dimensional input GM-LSTM model for accurate RUL prediction. Zhong
+physical constraints into attention architectures to enhance estimation       et al. [19] combining multi-task and transfer learning to jointly predict
+
+                                                                          2
+J. Sun and J. Gao                                                                                                       Journal of Energy Storage 152 (2026) 120479
+
+
+SOH and RUL by extracting and fusing dual-representation features,                information loss or error propagation. Consequently, there is a notable
+achieving high accuracy, robustness, and cross-domain generalization in           lack of unified generative frameworks capable of learning the underly­
+complex degradation scenarios. Li et al. [20] proposed an MC-CNN-                 ing probability distribution of degradation to simultaneously achieve
+TimesNet model capturing multi-scale aging dependencies, optimizing               robust trajectory reconstruction and uncertainty quantification under
+parameters via Tree-structured Parzen Estimation (TPE), and perform­              noisy conditions.
+ing feature selection and normalization. Sudarshan et al. [21] proposed               To address these limitations, this study proposes a novel physics-
+an autoencoder-based neural network, CD-Net, incorporating cell                   informed generative framework, SG-DiTs, for RUL prediction. This
+chemistry information to improve prediction accuracy and computa­                 framework effectively integrates SG filtering with a Diffusion-
+tional efficiency. Tang et al. [22] integrating K-means clustering,               Transformer network, as illustrated in Fig. 1. Specifically, SG filtering
+attention mechanisms, and transfer learning with multi-task learning. Li          is employed to stabilize the extraction of differential features from noisy
+et al. [23] provided a comprehensive survey of artificial neural network          sensor data. Subsequently, the diffusion model reformulates prediction
+(ANN)-based methods for LIBs, reviewing SOH estimation, RUL pre­                  as a probabilistic generative process: it learns to reconstruct the pristine
+diction, network architectures, training schemes, datasets, advanced              degradation trajectory from a Gaussian noise distribution conditioned
+machine learning algorithms, and performance comparisons. Overall,                on these optimized historical health indicators. The Transformer archi­
+data-driven methods provide high flexibility and adaptability,                    tecture serves as the backbone to capture long-term temporal de­
+leveraging large-scale sensor data to capture nonlinear degradation               pendencies, while the diffusion mechanism via forward noise injection
+dynamics without relying on explicit physical models. However, their              and reverse denoising inherently models the aleatoric uncertainty and
+performance heavily depends on the quantity and quality of training               complexity of battery aging. Based on battery physics, we developed a
+data, as well as the model ability to generalize across different operating       multidimensional feature extraction strategy integrating ICA, SE, and
+conditions.                                                                       MLE to capture degradation dynamics across different aging stages.
+    Hybrid methods merge the interpretability offered by physics-based                This study introduces several noteworthy contributions, as outlined
+models with the predictive strengths of data-driven models [24–27].               below:
+They integrate data-driven prediction with optimization algorithms for
+SOH assessment and RUL prediction. These methods can simultaneously                 (1) This study proposes the SG-DiTs framework, a novel hybrid
+ensure prediction accuracy [28] and enhance robustness in scenarios                     approach that synergizes signal processing with generative
+with limited data or high noise levels [29]. Huang et al. [30] proposed a               modeling. By modeling the distribution of degradation trajec­
+future internal resistance (R) combined with capacity regeneration                      tories through forward incremental noise injection and reverse
+phenomenon (CRP) model. Similarly, to address complex aging sce­                        reconstruction, SG-DiTs significantly enhances prediction
+narios, Wei et al. [31] developed a hybrid capacity estimation frame­                   robustness and quantifies uncertainty more effectively than
+work for LiFePO4 batteries. By integrating slight overcharge degradation                traditional probabilistic baselines under noisy and nonlinear
+mechanisms with machine learning algorithms, they successfully                          conditions.
+decoupled the impact of side reactions, achieving robust capacity esti­             (2) A physics-informed multidimensional feature extraction strategy
+mation. Pang et al. [32] proposed an improved particle swarm optimi­                    was designed. Features including differential curves, Shannon
+zation (IPSO) combined with particle filter (PF) model. Gomez et al.                    entropy (SE), and maximum Lyapunov exponent (MLE) were
+[33] proposed an improved temporal fusion transformer (ITFT) com­                       analyzed across early, middle, and late aging stages. The neces­
+bined with a bidirectional long short-term memory (Bi-LSTM) encoder-                    sity and effectiveness of these specific features were rigorously
+decoder model. Yao et al. [34] proposed a feature-encoded LSTM com­                     validated through feature ablation studies, ensuring that the
+bined with CNN (LSTM-CNN) model, integrating statistical and physical                   input space provides critical physical guidance for the data-
+features from incremental capacity (IC) curves and discharge cycles.                    driven model.
+Peng et al. [35] proposed a Fisher optimal segmentation (FOS) com­                  (3) This study utilizes two publicly available datasets, Toyota and
+bined with parrot optimizer-back propagation (PO-BP) neural network                     CALCE, and conducts sampling experiments at different predic­
+model to predict state of power (SOP) for parallel battery packs, tackling              tion starting points (30%, 40%, and 50%). Comprehensive
+cell inconsistencies through weighted cosine similarity and power                       comparative experiments against deterministic baselines and
+correction. Peng et al. [36] proposed a probabilistic multiscale Bayesian               probabilistic methods demonstrate the proposed model's superior
+convolutional transformer (PMBCT) combined with a Bayesian back­                        generalization and accuracy.
+propagation model, integrating multiscale representation learning and
+Bayesian convolutional sparse self-attention to quantify uncertainty and              This manuscript is divided into sections as detailed below. Section 2
+capture degradation features. Similarly, Hu et al. [37] introduced an             introduces the datasets and corresponding feature extraction tech­
+advanced multi-stage framework M2BIST-SPNet incorporating spatio­                 niques. Section 3 presents the proposed model and the overall meth­
+temporal attention mechanisms to enhance feature representation for               odological framework. Section 4 provides details on dataset
+RUL prediction. While these methods have improved prediction accu­                partitioning, evaluation metrics, comparative experiments across
+racy, addressing the stochastic nature of degradation trajectories under          different datasets, and hyperparameter optimization. In Section 5, the
+high-noise conditions remains a significant challenge, which this study           study is summarized, and potential directions for future research are
+aims to address using a generative diffusion framework.                           explored.
+    Despite these significant advancements, critical challenges remain in
+the field of RUL prediction. First, the majority of existing data-driven          Abbreviations
+and hybrid approaches primarily treat RUL prediction as a determin­
+istic regression task. This paradigm often lacks the capability to                 RUL                                   Remaining Useful Life
+explicitly model the intrinsic stochasticity of battery degradation tra­           LIBs                                  Lithium-ion batteries
+jectories, leading to unreliable predictions when batteries exhibit com­           BMS                                   Battery management system
+                                                                                   SOH                                   State of Health
+plex, non-linear aging behaviors in late stages. Second, while some                SG                                    Savitzky-Golay filtering
+probabilistic methods attempt to quantify uncertainty, they often                  DiTs                                  Diffusion-transformer hybrid framework
+struggle to capture high-dimensional temporal dependencies and are                 ICA                                   Incremental Capacity Analysis
+sensitive to the choice of prior distributions. Crucially, operational data        SE                                    Shannon entropy
+                                                                                   MLE                                   Maximum Lyapunov Exponent
+in real-world applications is inevitably corrupted by pervasive noise.
+Traditional pipelines that separate denoising from prediction can lead to                                                                 (continued on next page)
+
+
+                                                                              3
+J. Sun and J. Gao                                                                                                               Journal of Energy Storage 152 (2026) 120479
+
+
+Table 1                                                                                    where, NEOL represents the total number of cycles expected to reach the
+Current and voltage aging parameter configuration.                                         failure threshold, and Nnow denotes the current cycle count.
+  Battery                         CH23         CH30          CH37          CH40
+
+  Rated capacity (Ah)             1.1          1.1           1.1           1.1             2.2. Description of datasets
+  Charging current (A)            1.1          1.1           1.1           1.1
+  Charging cut-off voltage (V)    3.6          3.6           3.6           3.6
+  Discharging current (A)         4.4          4.4           4.4           4.4
+                                                                                           2.2.1. Toyota battery aging dataset
+  Discharge cut-off voltage (V)   2.0          2.0           2.0           2.0                 The batteries used in this study were from a dataset jointly collected
+                                                                                           and publicly released by Toyota Research Institute in collaboration with
+                                                                                           Stanford University and the Massachusetts Institute of Technology
+(continued )
+                                                                                           (MIT). It comprises a commercial lithium iron phosphate (LiFePO₄)
+  MAE                                    Mean Absolute Error                               battery cycling dataset with significant industrial application value. The
+  RMSE                                   Root Mean Square Error
+                                                                                           dataset includes 124 commercial LFP/graphite cylindrical batteries
+  R2                                     Coefficient of determination
+  EOL                                    End of life                                       (model APR18650M1A), each battery possessed a nominal voltage of
+  MLP                                    Multilayer perceptron                             3.3 V and a rated capacity of approximately 1.1 Ah, and underwent cycle
+  LN                                     Layer Normalization                               life evaluation under multiple rapid-charging protocols [12].
+  DDPM                                   Denoising diffusion probabilistic model               In this study, the aging data of four batteries, namely CH_23, CH_30,
+  GPR                                    Gaussian Process Regression
+  SEI                                    Solid Electrolyte Interphase
+                                                                                           CH_37, and CH_40, were selected as the experimental subjects. All tests
+  SP                                     Starting point                                    were conducted at ambient temperature (30 ◦ C) under a two-stage
+  Trans                                  Transformer                                       CC–CV fast-charging protocol, denoted as “C1(Q1)–C2.” In this nota­
+  CC                                     Constant current                                  tion, the symbols C1 and C2 correspond to the initial and secondary CC
+  CV                                     Constant voltage
+                                                                                           stages, whereas Q1 represents the SOC (%) at the point of current
+  CNN                                    Convolutional neural network
+  LSTM                                   Long short-term memory                            transition. After charging to 80% SOC in the first stage, the process
+                                                                                           switches to the second stage, where CC is performed under a 1C CC–CV
+                                                                                           mode with a cutoff voltage of 3.6 V. The discharge process uses a con­
+                                                                                           stant current of 4C with a voltage cutoff at 2.0 V, completing a full
+2. Datasets and feature analysis                                                           charge–discharge cycle for battery aging. The parameters are listed in
+                                                                                           Table 1.
+2.1. Definition of RUL                                                                         To validate the proposed RUL prediction method, this study utilizes
+                                                                                           the cycle life data of the four batteries mentioned above, as shown in the
+    RUL is used to characterize the safe and effective operational dura­                   capacity degradation trends in Fig. 2.
+tion of batteries and serves as a key metric in predictive maintenance
+and battery management systems (BMS) [34], being crucial for ensuring                      2.2.2. CALCE aging battery dataset
+both safety and cost-effectiveness of EVs. RUL describes the remaining                        This study makes use of the LIBs aging dataset publicly released by
+operational time and cycle count of a battery from its current state to the                the Center for Advanced Life Cycle Engineering CALCE [18] as the
+failure threshold ([35,36]). For LIBs, the end-of-life (EOL) threshold is                  experimental data source. The dataset comprises 15 prismatic lithium
+defined as a capacity drop to 80% of the original rated capacity. The                      cobalt oxide (LiCoO₂) cells, each characterized by a nominal capacity of
+prediction target is defined in terms of the remaining usable cycles, and                  1.1 Ah, tested under a standardized CC-CV protocol for cycle life eval­
+can be expressed through the following mathematical expression:                            uation. For the purpose of ensuring data integrity and facilitating
+                                                                                           experimental comparison, four cells, namely CS2_35, CS2_36, CS2_37,
+RUL = NEOL − Nnow                                                                (1)
+                                                                                           and CS2_38 series were selected as the subjects of analysis.
+                                                                                              In the experiments, each battery was first charged at 0.5C in CC mode
+
+
+
+
+                                                 Fig. 2. Capacity degradation trend of the Toyota battery dataset.
+
+                                                                                       4
+J. Sun and J. Gao                                                                                                          Journal of Energy Storage 152 (2026) 120479
+
+
+Table 2                                                                              2.3. Multidimensional feature analysis and extraction
+Current and voltage settings for battery aging experiments.
+  Battery                          CS35        CS36           CS37      CS38             In this stage, feature extraction is performed. To capture the degra­
+                                                                                     dation characteristics of LIBs during different phases of capacity fade,
+  Rated capacity (Ah)              1.1         1.1            1.1       1.1
+  Charging current (A)             0.55        0.55           0.55      0.55         this study designs a sequential feature extraction strategy. This approach
+  Charging cut-off voltage (V)     4.2         4.2            4.2       4.2          ensures an effective representation of the dynamic degradation behavior
+  Discharging current (A)          1.1         1.1            1.1       1.1          of LIBs in the early, middle, and late stages, thereby facilitating subse­
+  Discharge cut-off voltage (V)    2.7         2.7            2.7       2.7          quent RUL prediction.
+
+
+up to 4.2 V, followed by CV charging at 4.2 V until the current decreased            2.3.1. First-order features derived from differential curve analysis
+below 0.05 A. After charging, the battery was discharged at 1C until                     For the purpose of the RUL predicting for LIBs, the first-order dif­
+reaching the cutoff voltage of 2.7 V, completing a full charge–discharge             ferential curve features extracted during the CC-CV are highly sensitive
+cycle. The configuration of parameters is summarized in Table 2.                     to early-stage degradation, providing an intuitive reflection of the bat­
+   By recording and analyzing the test data over multiple cycles, battery            tery's operating state across different cycles. By accurately measuring
+capacity decline profiles, results expressed in terms of cycle number                and processing fundamental data for instance voltage, current, time, and
+were obtained, as illustrated in Fig. 3.                                             capacity throughout the charging and discharging cycles, the electro­
+                                                                                     chemical reaction characteristics of the battery under specific conditions
+                                                                                     can be effectively revealed. Fig. 4 illustrates the variations of current and
+
+
+
+
+                                                  Fig. 3. Capacity decline profiles of the CALCE battery dataset.
+
+
+
+
+                                  Fig. 4. Current and voltage changes over time in the CC–CV charging phase: (a) CC; (b) CV.
+
+                                                                                 5
+J. Sun and J. Gao                                                                                                              Journal of Energy Storage 152 (2026) 120479
+
+
+                                                                                          features are summarized in Table 3.
+
+                                                                                          2.3.2. Feature extraction based on SE
+                                                                                               As the battery enters the mid-stage of aging, structural damage and
+                                                                                          Solid Electrolyte Interphase (SEI) layer thickening occur. Shannon En­
+                                                                                          tropy (SE) is employed to quantify the uncertainty and complexity of the
+                                                                                          distribution, typically based on voltage, capacity, and differential
+                                                                                          curves, to characterize the randomness and smoothness of the curve
+                                                                                          shapes. For a discrete signal with an empirical probability distribution
+                                                                                          pi , SE is defined as:
+                                                                                                   B
+                                                                                                   ∑
+                                                                                          SE = −         pi log2 pi                                                   (2)
+                                                                                                   i=1
+
+
+                                                                                          where, pi denotes the probability of signal values falling into the i − th
+                                                                                          bin, and B represents the total count of bins. A higher SE value indicates
+      Fig. 5. Variations of curves across multiple cycles in the CC stage.                a more dispersed and complex curve distribution, reflecting greater
+                                                                                          uncertainty in electrochemical processes, while lower values suggest
+                                                                                          more uniform or deteriorated behavior. During cycling-induced aging,
+Table 3
+Differential curve-based feature extraction.
+                                                                                          changes in SE reflect reduced reaction activity, increased internal
+                                                                                          resistance, and the evolution of the degradation process.
+  Feature name           Description
+                                                                                              To characterize LIBs aging, this study analyzes the CC using SE. The
+  qv_Num                 Number of peaks in the dQ/dV curve                               voltage of each cycle is divided into B intervals, and the corresponding
+  qv_Main_V              Voltage position of the main peak in dQ/dV (V)
+                                                                                          SE values are calculated independently. Trends in SE across cycles
+  qv_Main_Height         Height of the main peak in dQ/dV (Ah/V)
+  qv_Area                Integrated area in a specified voltage range of dQ/dV (Ah)
+                                                                                          reflect the gradual loss of signal complexity, providing sensitive features
+  vq_Num                 Number of peaks in the dV/dQ curve                               for RUL prediction. As shown in Fig. 6, SE remains relatively stable in
+  vq_Main_V              Capacity position of the main peak in dV/dQ (Q, Ah)              early cycles but gradually decreases with continued cycling and aging,
+  vq_Main_Height         Height of the main peak in dV/dQ (V/Ah)                          indicating a more uniform voltage distribution and reduced complexity.
+  vq_Area                Integrated area in a specified capacity range of dV/dQ (V)
+                                                                                          This change reveals state evolution driven by nonlinear effects during
+  Q_CV_Ah                Capacity in the constant-voltage stage
+  Tau_exp                Current decay exponent in the constant-voltage stage             degradation.
+
+                                                                                          2.3.3. Feature extraction based on MLE
+voltage with time during the CC-CV in the aging dataset.                                      In the late stage of battery degradation, this study employs the
+    To reduce the impact of experimental noise, such as current fluctu­                   Maximum Lyapunov Exponent (MLE) feature based on stage-wise
+ations and contact resistance variations, on feature extraction, the SG                   analysis. As one of the key parameters in nonlinear dynamical theory,
+filtering method was applied to smooth the raw voltage–capacity curves.                   MLE is primarily used to quantify the sensitivity of the system to initial
+Subsequently, using the Incremental Capacity Analysis (ICA) method,                       conditions. During the charge–discharge process of LIBs, electro­
+the first-order derivatives of the smoothed data were calculated,                         chemical processes within the cell, polarization effects, and side re­
+yielding the dQ/dV and dV/dQ curves. Fig. 5 illustrates the variations of                 actions exhibit nonlinear characteristics. Mathematically, MLE is
+these curves across different cycles during charging.                                     defined as:
+    On this basis, multidimensional features were extracted using peak
+detection and numerical integration methods, including the number of                             1 d(t)
+                                                                                          λ = lim ln                                                                  (3)
+                                                                                              t→∞ t  d(0)
+peaks, main peak positions, main peak heights, integral features, and
+constant-voltage stage features. The description and definitions of these
+
+
+
+
+                                                                    Fig. 6. Trend of SE during the CC.
+
+                                                                                      6
+J. Sun and J. Gao                                                                                                       Journal of Energy Storage 152 (2026) 120479
+
+
+
+
+                                                 Fig. 7. MLE feature evolution during battery degradation.
+
+
+where, d(0) and d(t) denote the average distances between neighboring             qv_Num denotes the number of peaks, with changes reflecting the evo­
+trajectories in the phase space at the initial time and at time t, respec­        lution of reaction phases and degradation. qv_Main_V is the voltage of
+tively. If λ > 0, the system is highly sensitive to initial conditions,           the main peak, and its shift indicates increased polarization and asso­
+exhibiting chaotic behavior; otherwise, the trajectories converge.                ciated degradation mechanisms such as SEI growth. qv_Main_Height
+    Fig. 7 illustrates the trend of the MLE curve throughout the entire           represents the main peak height; decreases suggest reduced reaction
+battery cycling process. The MLE exhibits a gradual increase in the later         activity or effective reaction area. qv_Area corresponds to the integrated
+cycling stages, indicating the cumulative effect of the progressive acti­         area over a specific voltage range, revealing the decay of capacities in
+vation of active materials, changes in internal resistance, and accumu­           different reaction phases. For the dV/dQ curve, vq_Num represents the
+lation of side reactions on the system's dynamic behavior, leading to             number of voltage capacity inflection points, with changes indicating
+stronger nonlinear characteristics of the battery. Therefore, MLE can             reduced reaction reversibility or fewer phase transitions. vq_Main_V is
+effectively capture dynamic degradation information that traditional              the capacity at the main voltage transition, and its shift reflects capacity
+capacity decay metrics may fail to reveal, providing a new feature                slippage and increased polarization. vq_Main_Height indicates the in­
+dimension for subsequent battery health assessment and RUL prediction.            tensity of voltage variation and internal resistance, with higher peaks
+                                                                                  suggesting greater polarization or resistance. vq_Area quantifies overall
+                                                                                  voltage variation, reflecting the evolution of energy efficiency, voltage
+2.4. Correlation analysis between extracted features
+                                                                                  hysteresis, and aging.
+                                                                                      During the CV phase, Q_CV_Ah is obtained by integrating the
+   Table 3 summarizes the primary first-order differential features
+                                                                                  smoothed current over time. It can be used to evaluate the battery's
+extracted from the dQ/dV and dV/dQ curves. For the dQ/dV curve,
+
+
+
+
+                              Fig. 8. Correlation analysis of laboratory-aged battery features with RUL: (a) Toyota; (b) CALCE.
+
+                                                                              7
+J. Sun and J. Gao                                                                                                                   Journal of Energy Storage 152 (2026) 120479
+
+
+
+
+                                                          Fig. 9. Procedure of the diffusion model.
+
+
+charging efficiency and capacity contribution under constant-voltage               forward and reverse processes are implemented via parameterized
+conditions, providing a foundation for RUL prediction. The parameter               Markov chains, with the reverse process fitting the true data distribution
+tau_exp represents the exponential factor of current decay during the CV           by minimizing the reconstruction error. This procedure ensures the di­
+stage, describing the current's exponential decline over time. An in­              versity and quality of generated samples and provides a probabilistic
+crease in tau_exp indicates SEI layer thickening, higher internal resis­           foundation for modeling uncertainty in degradation processes.
+tance, and degraded reaction kinetics, yielding a time constant τ that                 As illustrated in Fig. 9, steps X0 to Xt represent the forward diffusion
+characterizes variations in the battery's internal impedance and dynamic           process, in which noise is known, gradually perturbing the original
+behavior. The formula can be represented as follows:                               features until they become.
+                    t                                                                  pure Gaussian noise. Steps Xt to X0 correspond to the process of
+I(t) = I∞ + A⋅e− τ                                                      (4)        restoring random noise back to the input [40].
+   Finally, as shown in Fig. 8. Pearson correlation analysis was                       During the forward noise-injection process, the data distribution is
+employed to explore how the extracted features relate to the RUL of                transformed into a standard distribution. The forward diffusion process
+various battery types in the Toyota and CALCE datasets. Features F1–F8             is defined as a sequential addition of Gaussian noise, which is given by:
+correspond to first-order differential curve features, F9–F10 represent                             t
+                                                                                                    ∏
+constant-voltage phase features, F11 denotes the SE statistical feature,           q(X1:t |X0 ) =        q(Xt |Xt− 1 )                                                     (5)
+                                                                                                     1
+and F12 corresponds to the MLE nonlinear feature.
+   Since these features originate from both CC and CV phases, they                                  ( √̅̅̅̅̅̅̅̅̅̅̅̅          )
+capture battery performance from multiple dimensions, including ca­                q(Xt |Xt− 1 ) = N Xt ; 1 − βt Xt− 1 , βt I                                              (6)
+pacity contribution, reaction kinetics, and polarization behavior,
+providing high-value input features for subsequent RUL prediction                  where, q(X1:t |X0 ) denotes the probability distribution of the noisy data
+models.                                                                            Xt obtained after t steps of noise injection starting from the original data
+                                                                                   X0 . Each step q(X1:t |X0 ) represents the Gaussian distribution at step t
+                                                                                                                            √̅̅̅̅̅̅̅̅̅̅̅̅
+3. Method                                                                          given the prior step Xt− 1 , with mean 1 − βt Xt− 1 and variance βt , where
+                                                                                   βt is a predefined noise variance coefficient and I represents the identity
+    This section presents the theoretical foundation of the proposed SG-           matrix. From the above formulation, it follows that one can sample
+DiTs framework employed in this study. This hybrid approach syner­                 directly from X0 to any arbitrary step Xt without performing stepwise
+gizes SG filtering for feature stabilization with the generative power of          noise injection:
+Diffusion models and the sequential modeling strengths of the Trans­                                  √̅̅̅̅
+former. By effectively combining signal processing with deep generative            q(Xt |X0 ) = N(Xt ; αt X0 , (1 − αt )I )                                 (7)
+modeling, the SG-DiTs framework facilitates robust distribution                                                                                         t
+                                                                                                                                                        ∏
+modeling of degradation trajectories and uncertainty quantification in             where, Xt =
+                                                                                                     √̅̅̅̅   √̅̅̅̅̅̅̅̅̅̅̅̅̅
+                                                                                                      αt X0 + 1 − αt ε, ε ∼ N(0, I); αt = 1 − βt , αt =   αs .
+high-dimensional, physics-informed feature spaces.                                                                                                                 s=1
+                                                                                       The backward process gradually restores the original distribution of
+3.1. Theoretical basis of diffusion models                                         the data reconstructed from Gaussian noise. Since q(Xt− 1 |Xt ) cannot be
+                                                                                   directly denoised, the model learns a parameterized distribution
+    Diffusion models are generative deep probabilistic models, whose               pθ (Xt− 1 |Xt ) to estimate the reverse process q(Xt− 1 |Xt ), which may be
+core idea is to gradually inject noise into the data until it becomes a pure       represented as:
+Gaussian distribution, and then sequentially remove the noise through a                                  t
+                                                                                                         ∏
+reverse process to recover the original data distribution [38]. This               pθ (X0:t ) = p(Xt )        pθ (Xt− 1 |Xt )                                              (8)
+approach effectively mitigates the challenges of noise and instability                                    1
+
+encountered by traditional generative models when modeling in high-
+                                                                                   pθ (Xt− 1 |Xt ) = N(Xt− 1 ; μθ (Xt , t) , Σθ (Xt , t) )                                 (9)
+dimensional spaces.
+    Diffusion models primarily consist of two processes: the forward                   In DDPM, the mean is reconstructed by fitting a noise prediction
+propagation of diffusion, in which Gaussian noise is applied progres­              model εθ (Xt |t):
+sively to the original data, causing the data distribution to converge                                (                                )
+                                                                                                  1         1 − αt
+toward a standard Gaussian, with the noise variance increasing linearly            μθ (Xt , t) = √̅̅̅̅ Xt − √̅̅̅̅̅̅̅̅̅̅̅̅̅ εθ (Xt , t)             (10)
+                                                                                                  αt         1 − αt
+over time steps; the reverse generative process starts from pure noise
+and uses a deep neural network to learn the conditional probability                   During sampling, starting from Xt ∼ N(0, I), the iteration is per­
+distribution, progressively denoising and reconstructing the original              formed based on the formula below:
+data [39]. In denoising diffusion probabilistic models (DDPM), both the
+
+                                                                               8
+J. Sun and J. Gao                                                                                                  Journal of Energy Storage 152 (2026) 120479
+
+
+
+
+                                                         Fig. 10. Framework of the DiTs model.
+
+
+Xt− 1 = μθ (Xt , t) + σt z, z ∼ N(0, I)                              (11)          (4) Embedding Layer: maps the original inputs into a high-
+                                                                                       dimensional space to enhance the representation of temporal
+    DDPM obtains the mean μθ by fitting a noise prediction model, which
+                                                                                       information.
+is then used to compute Xt − 1 .
+                                                                                    All inputs are processed through the high-dimensional embedding
+3.2. Structure of the DiTs model                                                 layer to strengthen temporal feature expression and provide essential
+                                                                                 conditional information for subsequent modules.
+    The DiTs network, serving as the core generative engine of the pro­
+posed SG-DiTs framework, integrates the diffusion process with a                 3.2.2. Stacked DiTs blocks layer
+Transformer encoder. It employs the forward process to inject noise into            Each DiTs Block is composed of multiple stacked Transformer
+battery degradation features and then generates the degradation tra­             encoder structures, with the core consisting of the following compo­
+jectory in the reverse process, thereby enabling probabilistic modeling          nents:
+of SOH and RUL prediction. The model architecture is illustrated in
+Fig. 10, and the DiTs model primarily consists of three modules: the               (1) The Multi-Head Self-Attention layer computes the correlations
+input and feature embedding layer, the stacked DiTs blocks layer, and                  between each position and all other positions in the sequence in
+the output layer.                                                                      parallel through multiple attention heads, capturing de­
+                                                                                       pendencies across different timesteps and enabling global infor­
+3.2.1. Input and feature embedding layer                                               mation interaction. The formulation is as follows:
+    The input layer performs high-dimensional mapping of the noised                                                (      )
+                                                                                                                     QKT
+features, timesteps, and health state labels, providing the model with the             Attention(Q, K, V) = Softmax √̅̅̅̅̅ V                       (12)
+original degradation features and conditional information. The specific                                                dK
+procedure is as follows:
+                                                                                         where, Q = XWQ , K = XWK , V = XWV .
+   (1) Noised Feature: noise-added features from the forward diffusion             (2) The Conditioning + MLP layer receives external condition inputs,
+       process; the input represents the noised feature at a specific                  including Label SOH and Timestep t. The multilayer perceptron
+       timestep.                                                                       (MLP) performs nonlinear mapping, embedding these conditional
+   (2) Label SOH: serving as conditional information to guide the model                information into the main network.
+       in learning degradation trajectories and the generation process.
+   (3) Timestep t: the timestep of the diffusion process, using a linear
+       scheduler. The Timestep t was fixed at 1000.
+
+                                                                             9
+J. Sun and J. Gao                                                                                                                 Journal of Energy Storage 152 (2026) 120479
+
+
+   (3) The Feedforward network consists of two linear layers and a                  Table 4
+       nonlinear activation function, transforming the input position-              Training and test dataset partitioning.
+       wise:                                                                          Dataset                        Training dataset                          Test dataset
+
+        FFN(x) = max(0, xW1 + b1 )W2 + b2                              (13)           Toyota dataset                 CH_30, CH_37, CH_40                       CH_23
+                                                                                                                     CH_23, CH_37, CH_40                       CH_30
+                                                                                                                     CH_23, CH_30, CH_40                       CH_37
+         The first layer is responsible for increasing the dimensionality,                                           CH_23, CH_30, CH_37                       CH_40
+       while the second layer maps the dimensions back to the original                CALCE dataset                  CS_36, CS_37, CS_38                       CS_35
+                                                                                                                     CS_35, CS_37, CS_38                       CS_36
+       space.                                                                                                        CS_35, CS_36, CS_38                       CS_37
+   (4) Layer Normalization (LN) dynamically generates the scaling                                                    CS_35, CS_36, CS_37                       CS_38
+       parameter γ and shifting parameter β based on the input infor­
+       mation, using condition c as input to adaptively adjust the
+       behavior of LN:                                                              samplings.
+
+                     x− μ
+        LN(x, c) = γ⋅     +β                                           (14)
+                      σ+ε                                                           3.3. Optimization objective and sampling strategy
+
+
+          where, γ = fγ (c) is the scaling parameter generated from the                 To optimize the DiTs framework, we employ the simplified training
+        conditional information c through a MLP; β = fβ (c) is the shifting         objective proposed in DDPM [41], which focuses on predicting the noise
+        parameter generated from c via an MLP. f(c) denotes an MLP that             residual. The model parameter θ is updated by minimizing the Root
+        takes the conditional information as input and outputs the cor­             Mean Square Error (RMSE) loss between the added Gaussian noise ε and
+        responding γ, β.                                                            the predicted noise εθ . The loss function is defined as:
+          A residual scaling parameter α is added in LN to dynamically                            ⎡⃦
+                                                                                                    ⃦
+                                                                                                                                                                ⃦2 ⎤
+                                                                                                                                                                ⃦
+                                                                                                    ⃦                                                           ⃦
+        control the influence of the residual path. It is generated                               ⎢ ⃦       ( √    ̅̅̅̅           √   ̅̅̅̅̅̅̅̅̅̅̅̅̅         )   ⃦ ⎥
+        dynamically from the conditional information: α = fα (c) com­               Lsimple (θ) = ⎢
+                                                                                                  ⎣⃦
+                                                                                                    ⃦ε − εθ        α  t X  0  +       1   −    α t  ε, t, c     ⃦ ⎥
+                                                                                                                                                                ⃦ ⎦  (18)
+                                                                                                    ⃦       ⏟̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅⏞⏞̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅ ⏟ ⃦
+        bined with α scales the residual path:                                                      ⃦                               Xt
+                                                                                                                                                                ⃦
+                     ( x− μ       )
+        LN(x, c) = α⋅ γ⋅       +β                                      (15)         where X0 is the clean feature vector, t is the timestep sampled uniformly
+                         σ+ε
+                                                                                    from {1, ...., T}, and c represents the conditional information (SOH
+                                                                                                                       t
+                                                                                                                       ∏
+         The output of the residual path is dynamically adjusted; by                label). Here, αt = 1 − βt and αt =    αs define the noise intensity at each
+       initializing α to 0, the module output equals only the main path                                                       s
+
+       output, achieving identity initialization.                                   step.
+   (5) The Scale & Shift (α, β, γ parameter) conditioning module is used                Regarding the noise schedule, we adopt a linear variance schedule
+       to combine the Timestep t and Lable SOH information to perform               where βt increases linearly from β1 = 10− 4 to βT = 0.02, with the total
+       scaling and shifting operations on the features:                             diffusion steps set to T = 1000.
+                                                                                        To incorporate the condition c (SOH label) into the denoising pro­
+        h = γ⋅h + β
+        ̂                                                              (16)         cess, we utilize the Adaptive Layer Normalization (AdaLN) mechanism
+                                                                                    within each DiTs block. As described in Eqs. (14)–(16), the scaling
+                                                                                    parameter γ and shifting parameter β are dynamically regressed from the
+          This enables conditional constraints on the generation process.
+                                                                                    conditional embeddings:
+   (6) The Residual Connection adds the sublayer input to its output,
+       alleviating the vanishing gradient problem in deep networks and              γ, β = MLP(Embed(t) + Embed(c) )                                                   (19)
+       enhancing training stability. This module achieves deep feature
+                                                                                        This ensures that the generated degradation trajectories Xt− 1 are
+       extraction and conditional modeling of degradation distributions
+                                                                                    strictly guided by the specific battery health state.
+       through multi-layer stacking.
+
+                                                                                    4. Experimental validation
+3.2.3. Output layer
+
+                                                                                    4.1. Dataset partitioning
+    (1) The Linear and Reshape layer maps the Transformer output back
+         to the original dimension and adjusts it into a structure suitable
+                                                                                        This study utilizes two types of battery datasets from Toyota and
+         for prediction.
+                                                                                    CALCE Laboratory dataset, covering lithium-ion battery capacity
+    (2) In the reverse diffusion process, the Noise is gradually denoised to
+                                                                                    degradation under various aging conditions. To ensure accurate exper­
+         generate the distribution mean μθ , the Variance Σθ represents the
+                                                                                    imental evaluation, a cross-validation approach is adopted: in each
+         variance produced during denoising. After completing a single-
+                                                                                    iteration, three batteries are chosen for the training set, while the
+         step denoising at a given time step, the output is fed back to
+                                                                                    remaining battery is used as the test set, cycling until each battery has
+         the input layer for iterative denoising until all the noise are
+                                                                                    served as the test sample once. The specific partitioning is presented in
+         removed.
+                   (                                   )                            Table 4.
+                                          ∑
+pθ (Xt− 1 |Xt ) = N Xt− 1 ; μθ (Xt , t) ,  θ
+                                             (X t , t)                  (17)
+                                                                                    4.2. Evaluation metrics
+   The output layer maps the high-dimensional features from the
+Transformer back to the original dimension, progressively denoising and                 For a thorough assessment of the model's predictive capability, this
+generating degradation trajectories across different time steps. The final          work adopts three evaluation metrics—Mean Absolute Error (MAE),
+model not only provides point estimates but also enables obtaining the              Root Mean Square Error (RMSE), and the coefficient of determination
+probabilistic distribution of the degradation process through multiple              (R2 )—to measure performance across different starting points (SP). The
+                                                                                    formulas are as follows:
+
+                                                                               10
+J. Sun and J. Gao                                                                               Journal of Energy Storage 152 (2026) 120479
+
+
+
+
+                    Fig. 11. RUL prediction results for Toyota battery cells CH_23 and CH_30.
+
+
+
+
+                                                       11
+J. Sun and J. Gao                                                                               Journal of Energy Storage 152 (2026) 120479
+
+
+
+
+                    Fig. 12. RUL prediction results for Toyota battery cells CH_37 and CH_40.
+
+
+
+
+                                                       12
+J. Sun and J. Gao                                                                                                                 Journal of Energy Storage 152 (2026) 120479
+
+
+Table 5                                                                                      Table 6
+Quantitative performance comparison of RUL on Toyota cells CH_23 and CH_30                   Quantitative performance comparison of RUL on Toyota cells CH_37 and CH_40
+(the experimental error margins are expressed as percentages).                               (the experimental error margins are expressed as percentages).
+  CH_23                    MAE (%)            RMSE (%)         R2                             CH_37            MAE (%)          RMSE (%)           R2
+
+  CNN-LSTM                 0.35/0.37/0.36     0.44/0.46/0.47   0.9954/0.9948/0.9947           CNN-LSTM         0.41/0.42/0.46   0.54/0.54/0.59     0.9935/0.9937/0.9927
+    (30%/40%/                                                                                   (30%/40%/
+    50%)                                                                                        50%)
+  CNN-Trans                0.37/0.49/0.44     0.46/0.63/0.58   0.9948/0.9906/0.9919           CNN-Trans        0.57/0.56/0.63   0.73/0.73/0.80     0.9882/0.9886/0.9862
+    (30%/40%/                                                                                   (30%/40%/
+    50%)                                                                                        50%)
+  Trans (30%/              0.96/1.02/1.01     1.03/1.16/1.16   0.9727/0.9681/0.9676           Trans (30%/      0.49/0.42/0.45   0.65/0.55/0.59     0.9905/0.9935/0.9925
+    40%/50%)                                                                                    40%/50%)
+  DiTs-Raw                 1.06/1.18/1.30     1.74/1.89/1.92   0.9280/0.9170/0.9155           DiTs-Raw         1.44/1.47/1.50   1.70/1.77/1.85     0.8320/0.8296/0.8261
+    (30%/40%/                                                                                   (30%/40%/
+    50%)                                                                                        50%)
+  GPR (30%/                1.31/1.37/1.58     1.63/1.71/1.88   0.9376/0.9316/0.9182           GPR (30%/        1.26/1.12/1.06   1.45/1.28/1.22     0.9508/0.9633/0.9684
+    40%/50%)                                                                                    40%/50%)
+  DiTs (30%/               0.97/1.02/1.13     1.01/1.06/1.17   0.9544/0.950/0.9413            DiTs (30%/       1.15/1.26/1.47   1.23/1.35/1.56     0.9322/0.9244/0.9111
+    40%/50%)                                                                                    40%/50%)
+  SG-DiTs (30%/            0.10/0.11/0.10     0.13/0.12/0.13   0.9996/0.9996/0.9995           SG-DiTs (30%/    0.12/0.19/0.20   0.12/0.25/0.26     0.9986/0.9977/0.9976
+    40%/50%)                                                                                    40%/50%)
+
+
+
+  CH_30                    MAE (%)            RMSE (%)         R2                             CH_40            MAE (%)          RMSE (%)           R2
+
+  CNN-LSTM                 0.40/0.42/0.42     0.51/0.53/0.54   0.9939/0.9934/0.9932           CNN-LSTM         0.56/0.71/0.41   0.69/1.02/0.53     0.9898/0.9780/0.9942
+    (30%/40%/                                                                                   (30%/40%/
+    50%)                                                                                        50%)
+  CNN-Trans                0.47/0.48/0.47     0.56/0.58/0.57   0.9926/0.9922/0.9925           CNN-Trans        0.55/0.59/0.63   0.68/0.80/0.80     0.9898/0.9865/0.9867
+    (30%/40%/                                                                                   (30%/40%/
+    50%)                                                                                        50%)
+  Trans (30%/              0.52/0.53/0.55     0.67/0.70/0.72   0.9983/0.9889/0.9881           Trans (30%/      0.32/0.33/0.34   0.42/0.41/0.43     0.9961/0.9963/0.9962
+    40%/50%)                                                                                    40%/50%)
+  DiTs-Raw                 1.07/1.23/1.40     1.12/1.29/1.46   0.9437/0.9354/0.9249           DiTs-Raw         1.06/1.12/1.23   1.12/1.28/1.30     0.9266/0.9178/0.9039
+    (30%/40%/                                                                                   (30%/40%/
+    50%)                                                                                        50%)
+  GPR (30%/                1.09/1.24/1.39     1.36/1.43/1.64   0.9376/0.9316/0.9182           GPR (30%/        1.14/1.11/1.19   1.32/1.29/1.36     0.9463/0.9507/0.9472
+    40%/50%)                                                                                    40%/50%)
+  DiTs (30%/               1.44/1.46/1.54     1.47/1.49/1.58   0.9247/0.9228/0.9151           DiTs (30%/       0.93/0.91/1.01   0.95/0.94/1.03     0.9622/0.9620/0.9568
+    40%/50%)                                                                                    40%/50%)
+  SG-DiTs (30%/            0.10/0.11/0.11     0.13/0.13/0.13   0.9986/0.9983/0.9986           SG-DiTs (30%/    0.10/0.12/0.11   0.13/0.16/0.16     0.9986/0.9961/0.9962
+    40%/50%)                                                                                    40%/50%)
+
+
+
+          1∑ n                                                                               CNN-LSTM, which integrates spatial and temporal feature learning.
+MAE =                 yi ∣
+                ∣yi − ̂                                                          (20)        Second, Gaussian Process Regression (GPR) is introduced as a probabi­
+          n i=1
+                                                                                             listic baseline to benchmark the model's uncertainty quantification
+           √̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅
+                   n                                                                         performance. Finally, to validate the specific contributions of our pro­
+            1∑
+RMSE =                  (yi − ̂     y i )2                                       (21)        posed components, we evaluate two ablation variants: DiTs (without
+            n i=1
+                                                                                             Savitzky-Golay filtering) to assess the necessity of signal smoothing for
+                                                                                             feature stability, and DiTs-Raw (using only raw sensing data) to verify
+           n
+           ∑
+                       y i )2
+                 (yi − ̂                                                                     the efficacy of the multidimensional feature engineering strategy.
+           i=1
+R = 1−
+ 2
+            n                                                                    (22)
+           ∑
+                 (yi − yi )2                                                                 4.3.1. Prediction of RUL on the Toyota dataset
+           i=1                                                                                   To provide a comprehensive assessment of RUL prediction perfor­
+    In this context, n indicates the number of data samples used in the                      mance at various degradation stages, prediction starting points (SPs) are
+evaluation, yi and ̂y i represent the i − th true value and predicted value,                 set at 30%, 40%, and 50% of the total cycle life. The failure threshold
+and yi is the mean of the true values. MAE measures the average absolute                     (EOL) is conventionally determined as 80% of the initial rated capacity
+deviation between predictions and true values; RMSE is more sensitive                        (0.88 Ah).
+to large errors; R2 assesses the extent to which the variance in actual                          Figs. 11–12 illustrate the capacity degradation trajectories. Specif­
+data is captured by model predictions, where R2 = 1 indicates perfect fit,                   ically, Fig. 11 presents the results for cells CH_23 and CH_30, while
+R2 = 0 corresponds to predicting the mean, and R2 < 0 indicates worse                        Fig. 12 displays the results for CH_37 and CH_40. In these figures, the
+performance than using the mean.                                                             labels A, B, and C correspond to the prediction starting points of 30%,
+                                                                                             40%, and 50%, respectively. These plots compare the proposed SG-DiTs
+                                                                                             framework against the probabilistic baseline (GPR) and ablation vari­
+4.3. Effectiveness validation of the proposed method                                         ants, including DiTs without SG filtering and DiTs-Raw which utilizes
+                                                                                             only basic raw features such as current and voltage without multidi­
+    To comprehensively evaluate the predictive capability and robust­                        mensional feature extraction.
+ness of the proposed SG-DiTs framework, comparisons are made against                             As visually demonstrated in the figures, the proposed SG-DiTs
+three categories of methods. First, we employ three deterministic deep                       framework yields degradation curves that align most closely with the
+learning baselines: Trans, which utilizes self-attention for long-range                      experimental ground truth across all starting points. While the proba­
+dependency modeling; CNN-Trans, which combines CNNs for local                                bilistic GPR model provides uncertainty estimates, its mean predictions
+feature extraction with Transformers for global temporal modeling; and
+
+                                                                                        13
+J. Sun and J. Gao                                                                              Journal of Energy Storage 152 (2026) 120479
+
+
+
+
+                    Fig. 13. RUL prediction results for CALCE battery cells CS_35 and CS_36.
+
+
+
+
+                                                       14
+J. Sun and J. Gao                                                                              Journal of Energy Storage 152 (2026) 120479
+
+
+
+
+                    Fig. 14. RUL prediction results for CALCE battery cells CS_37 and CS_38.
+
+
+                                                       15
+J. Sun and J. Gao                                                                                                        Journal of Energy Storage 152 (2026) 120479
+
+
+Table 7                                                                             Table 8
+Quantitative performance comparison of RUL on CALCE cells CS_35 and CS_36           Quantitative performance comparison of RUL on CALCE cells CS_37 and CS_38
+(the experimental error margins are expressed as percentages).                      (the experimental error margins are expressed as percentages).
+  CS_35             MAE (%)          RMSE (%)         R2                             CS_37            MAE (%)          RMSE (%)           R2
+
+  CNN-LSTM          0.80/0.83/0.65   1.02/1.05/1.11   0.9944/0.9941/0.9933           CNN-LSTM         0.92/0.92/0.97   1.0/1.03/1.05      0.9919/0.9914/0.9901
+    (30%/40%/                                                                          (30%/40%/
+    50%)                                                                               50%)
+  CNN-Trans         1.52/1.55/0.88   1.83/1.87/1.11   0.9822/0.9814/0.9796           CNN-Trans        1.17/1.02/1.09   1.16/1.17/1.18     0.9856/0.9831/0.9799
+    (30%/40%/                                                                          (30%/40%/
+    50%)                                                                               50%)
+  Trans (30%/       1.12/1.17/1.22   1.39/1.44/1.50   0.9897/0.9890/0.9878           Trans (30%/      0.88/0.90/0.97   1.1/1.13/1.19      0.9932/0.9926/0.9914
+    40%/50%)                                                                           40%/50%)
+  DiTs-Raw          4.72/5.35/6.10   5.23/5.98/6.88   0.9147/0.9074/0.8941           DiTs-Raw         4.71/4.32/5.24   5.14/4.96/6.01     0.8019/0.8448/0.7998
+    (30%/40%/                                                                          (30%/40%/
+    50%)                                                                               50%)
+  GPR (30%/         1.22/1.36/1.50   1.25/1.38/1.49   0.9914/0.9904/0.9891           GPR (30%/        1.22/1.29/1.46   1.4/1.48/1.66      0.9904/0.9898/0.9874
+    40%/50%)                                                                           40%/50%)
+  DiTs (30%/        1.3/1.35/1.48    1.39/1.45/1.58   0.9895/0.9891/0.9877           DiTs (30%/       2.86/3.12/3.47   3.29/3.58/3.96     0.9387/0.9256/0.9151
+    40%/50%)                                                                           40%/50%)
+  SG-DiTs (30%/     0.59/0.60/0.65   0.60/0.62/0.66   0.9967/0.9965/0.9959           SG-DiTs (30%/    0.51/0.51/0.51   0.61/0.61/0.62     0.9953/0.9948/0.9947
+    40%/50%)                                                                           40%/50%)
+
+
+
+  CS_36             MAE (%)          RMSE (%)         R2                             CS_38            MAE (%)          RMSE (%)           R2
+
+  CNN-LSTM          0.94/0.99/1.05   1.24/1.29/1.34   0.9932/0.9920/0.9889           CNN-LSTM         1.03/1.09/1.15   1.42/1.5/1.59      0.9895/0.9883/0.9867
+    (30%/40%/                                                                          (30%/40%/
+    50%)                                                                               50%)
+  CNN-Trans         0.92/0.98/1.05   1.20/1.26/1.34   0.9937/0.9924/0.9903           CNN-Trans        1.01/1.16/1.06   1.22/1.14/1.37     0.9809/0.9783/0.9752
+    (30%/40%/                                                                          (30%/40%/
+    50%)                                                                               50%)
+  Trans (30%/       1.0/1.08/1.19    1.31/1.39/1.49   0.9925/0.9908/0.9880           Trans (30%/      0.72/0.82/0.72   0.86/0.82/0.85     0.9761/0.9761/0.9755
+    40%/50%)                                                                           40%/50%)
+  DiTs-Raw          4.95/5.78/5.96   5.88/6.75/6.77   0.9487/0.9402/0.9257           DiTs-Raw         4.71/4.24/5.10   5.97/5.59/6.51     0.9081/0.9102/0.8869
+    (30%/40%/                                                                          (30%/40%/
+    50%)                                                                               50%)
+  GPR (30%/         1.10/1.24/1.46   1.32/1.48/1.70   0.9929/0.9912/0.9883           GPR (30%/        1.58/1.71/1.87   1.58/1.69/1.82     0.9878/0.9865/0.9852
+    40%/50%)                                                                           40%/50%)
+  DiTs (30%/        1.7/1.75/1.87    1.82/1.88/2.01   0.9856/0.9837/0.9801           DiTs (30%/       1.59/1.68/1.83   1.7/1.79/1.93      0.9805/0.9787/0.9759
+    40%/50%)                                                                           40%/50%)
+  SG-DiTs (30%/     0.41/0.41/0.41   0.81/0.81/0.81   0.9966/0.9960/0.9962           SG-DiTs (30%/    0.37/0.38/0.38   0.61/0.61/0.61     0.9942/0.9937/0.9931
+    40%/50%)                                                                           40%/50%)
+
+
+
+tend to deviate significantly from the actual values during the highly              covers CS_37 and CS_38. In these figures, the sub-panels labeled A, B,
+nonlinear late-aging stages. Furthermore, the trajectories predicted by             and C correspond to predictions initiated at 30%, 40%, and 50% of the
+the ablation variants (DiTs and DiTs-Raw) exhibit noticeable fluctua­               lifecycle, respectively. The proposed SG-DiTs framework is compre­
+tions and larger deviations, empirically confirming that Savitzky-Golay             hensively compared against three categories of methods: Deterministic
+filtering and multidimensional feature extraction are critical for stabi­           baselines, Probabilistic baseline, Ablation variants.
+lizing the diffusion generation process.                                                Comparison with deterministic models, while CNN-LSTM and CNN-
+    The detailed quantitative evaluation metrics, including RMSE, MAE,              Trans capture the general trend, they often exhibit lag or over-
+and R2 , are summarized in Table 5 for batteries CH_23 and CH_30, and in            smoothing in the presence of local regeneration phenomena. Trans
+Table 6 for batteries CH_37 and CH_40. The experiments indicate that                tends to be sensitive to the high-frequency noise inherent in the CALCE
+under all SP conditions: a) SG-DiTs consistently achieves the lowest                data. In contrast, SG-DiTs robustly filters irrelevant noise while preser­
+RMSE and MAE compared to both the probabilistic GPR baseline and the                ving the underlying degradation trend. Comparative analysis with
+deterministic deep learning comparisons; b) The inclusion of physics-               probabilistic and ablation baselines highlights the superiority of the
+informed features allows SG-DiTs to significantly outperform DiTs-                  proposed framework. While GPR struggles to capture trend shifts during
+Raw, validating the effectiveness of the proposed feature engineering               capacity regeneration and DiTs-Raw remains highly sensitive to local
+strategy; c) Although all models show a natural performance decline as              noise, SG-DiTs generates trajectories that closely adhere to the ground
+the SP increases from 30% to 50%, SG-DiTs exhibits the least sensitivity            truth. This validates the efficacy of integrating signal processing stra­
+to SP variations, maintaining a high coefficient of determination R2 and            tegies within the generative paradigm.
+demonstrating superior robustness in long-term forecasting.                             As observed in the figures, the CALCE dataset presents a more
+                                                                                    challenging prediction task due to significant noise and capacity jumps.
+4.3.2. Prediction of RUL on the CALCE dataset                                       However, the SG-DiTs model demonstrates superior smoothness and
+    Compared to the Toyota dataset, the CALCE dataset exhibits longer               accuracy compared to all baselines.
+capacity degradation sequences characterized by greater local fluctua­                  The detailed quantitative evaluation metrics are listed in Table 7 for
+tions and pronounced capacity regeneration phenomena. Consequently,                 CS_35 and CS_36 and Table 8 for CS_37 and CS_38.
+the EOL threshold is set at 70% of the rated capacity, corresponding to
+0.80 Ah. Consistent with the Toyota experiments, the RUL prediction                    Overall Performance: As shown in the tables, SG-DiTs consistently
+SPs are set at 30%, 40%, and 50% of the total cycle life.                              achieves the lowest RMSE and MAE and the highest R2 across all
+    Figs. 13 and 14 present the RUL predicted capacity degradation                     tested cells and starting points.
+curves. Fig. 13 details the results for cells CS_35 and CS_36, while Fig. 14
+
+
+                                                                               16
+J. Sun and J. Gao                                                                                                               Journal of Energy Storage 152 (2026) 120479
+
+
+Table 9                                                                              Table 10
+Evaluation of prediction accuracy for different methods on CALCE aged                Evaluation of prediction accuracy for different methods on Toyota aged
+batteries.                                                                           batteries.
+  Test dataset      CS_35           CS_36           CS_37         CS_38               Test dataset     CH_23            CH_30            CH_37             CH_40
+
+  Start point       238/318/397     239/319/398     263/351/438   274/366/457         Start point      168/224/280      153/204/255       168/224/280      145/193/241
+    (30%/                                                                               (30%/
+    40%/                                                                                40%/
+    50%)                                                                                50%)
+    (cycle)                                                                             (cycle)
+  Real RUL          394/314/235     384/304/225     432/344/257   486/394/303         Real RUL         356/300/244      331/280/229       366/310/254      314/266/218
+  CNN-LSTM          396/316/237     380/300/222     434/345/258   479/387/296         CNN-LSTM         352/298/243      330/279/231       368/312/256      316/268/220
+  CNN-LSTM                2/2/2           4/4/3           2/1/1         7/7/7         CNN-LSTM               4/2/1            1/1/2             2/2/2            2/2/2
+    (RUL                                                                                (RUL
+    absolute                                                                            absolute
+    error)                                                                              error)
+  CNN-Trans         395/316/236     386/307/228     428/341/253   484/398/301         CNN-Trans        358/296/246      327/276/225       363/309/249      316/268/219
+  CNN-Trans               1/2/1           2/3/3           4/3/4         2/4/2         CNN-Trans              2/4/2            4/4/4             3/1/5            2/2/1
+    (RUL                                                                                (RUL
+    absolute                                                                            absolute
+    error)                                                                              error)
+  Trans             397/317/238     386/307/228     431/346/258   489/397/306         Trans            354/302/242      328/277/226       364/308/256      316/268/220
+  Trans (RUL              3/3/3           2/3/3           1/2/1         3/3/3         Trans (RUL             2/2/2            3/3/3             2/2/2            2/2/2
+    absolute                                                                            absolute
+    error)                                                                              error)
+  Raw-              395/316/237     388/308/229     447/359/272   498/406/315         Raw-             350/298/242      330/278/227       369/313/257      315/265/216
+    feature                                                                             feature
+  DiTs-Raw                  1/2/2           4/4/4      15/15/15      12/12/12         DiTs-Raw                 6/2/2            1/2/2            3/3/3             1/2/2
+    (RUL                                                                                (RUL
+    absolute                                                                            absolute
+    error)                                                                              error)
+  GPR               402/322/243     385/306/226     437/349/263   488/396/305         GPR              367/311/255      335/284/233       371/315/259      315/268/220
+  GPR (RUL                8/8/8           1/2/1           5/5/5         2/2/2         GPR (RUL            11/11/11            4/4/4             5/5/5            1/2/2
+    absolute                                                                            absolute
+    error)                                                                              error)
+  DiTs              395/316/237     389/309/230     439/351/264   488/396/305         DiTs             355/298/242      332/279/231       372/316/260      309/261/213
+  DiTs (RUL               1/2/2           5/5/5           7/7/7         2/2/2         DiTs (RUL              1/2/2            1/1/2             6/6/6            5/5/5
+    absolute                                                                            absolute
+    error)                                                                              error)
+  SG-DiTs           395/315/236     382/302/224     431/343/256   487/395/301         SG-DiTs          357/301/242      332/281/228      367/311/253       315/267/219
+  SG-DiTs                 1/1/1           2/2/1           1/1/1         1/1/2         SG-DiTs                1/1/2            1/1/1            1/1/1             1/1/1
+    (RUL                                                                                (RUL
+    absolute                                                                            absolute
+    error)                                                                              error)
+
+
+
+    Robustness: Although all models exhibit a decline in performance
+                                                                                                     Table 11
+    metrics as the starting point moves from 30% to 50%, SG-DiTs ex­
+                                                                                                     Results of hyperparameter optimization.
+    hibits the least sensitivity to SP variations. Notably, it significantly
+    outperforms the best deterministic baseline and the probabilistic                                 Hyperparameters                              Range
+    GPR model, providing robust support for the proposed framework's                                  Net_depth                                    12
+    ability to handle complex, non-monotonic degradation patterns.                                    Num_heads                                    8
+                                                                                                      Learn_rate                                   1e− 4
+                                                                                                      d_model                                      256
+4.3.3. Comparative analysis of RUL predictions at EOL intersection points                             Patch_size                                   4
+   Since the RUL is defined as the remaining number of cycles for the                                 Batch_size                                   256
+battery to reach its EOL from the SP, the distance between the inter­
+section of the predicted curve with the EOL and that of the true curve at
+the EOL serves as a measure of the model's RUL prediction accuracy; the              4.4. Prediction strategy and hyperparameter optimization
+closer these intersections, the higher the prediction accuracy. Local
+zoom-in plots serve as an effective tool for visualizing RUL prediction                  In this study, a rolling prediction strategy is employed to predict the
+results across different methods.                                                    RUL. The model utilizes a historical observation window of a fixed size L
+   As shown in Figs. 11–14, the intersection of the SG-DiTs-predicted                to predict the capacity value of the next cycle. Specifically, at each time
+capacity curve with the EOL is closer to that of the true curve                      step t, the input sequence Xt− L+1:t = [xt− L+1 , ..., xt ] is fed into the SG-DiTs
+compared to other methods. To quantitatively demonstrate the SG-DiTs                 model to generate the prediction ̂       x t+1 . This predicted value is then
+model's performance in RUL prediction, the predicted RUL and absolute                appended to the input sequence sliding the window forward to serve as
+errors relative to measured data are listed in Tables 9–10.                          the input for predicting ̂  x t+2 . This process repeats iteratively until the
+   As shown in Tables 9–10, whether the starting point (SP) is at 30%,               predicted capacity reaches the EOL. In our experiments, the input win­
+40%, or 50% of the battery's full cycle, the RUL predicted by DiTs is the            dow size is set to L = 40 cycles. This rolling mechanism allows the model
+always closest to the actual value compared with CNN-LSTM, CNN-                      to dynamically update its state based on the most recent degradation
+Trans, Trans, GPR, DiTs-Raw and DiTs. This provides strong evidence                  trends.
+that the proposed RUL prediction approach is suitable for batteries with                 Hyperparameter optimization is a critical factor in predicting the
+varying types and aging stages.                                                      RUL of LIBs. To obtain the optimal parameter combination, this study
+                                                                                     employs a grid search combined with empirical tuning to define the
+                                                                                     hyperparameter ranges. Cross-validation is employed to assess the
+
+                                                                                17
+J. Sun and J. Gao                                                                                                             Journal of Energy Storage 152 (2026) 120479
+
+
+performance of various parameter configurations, and the optimal                 References
+configuration is determined based on a comprehensive comparison of
+prediction accuracy. Key hyperparameters, including network depth,                [1] X. Yu, Y. Yang, C. Xie, et al., Remaining-useful-lifetime prediction of proton
+                                                                                      exchange membrane fuel cell considering model uncertainty quantification on the
+hidden dimension, number of attention heads, and patch size, are sys­                 full-time scale, IEEE Trans. Transp. Electrif. 10 (3) (2023) 7443–7455.
+tematically tuned. The optimal configuration, presented in Table 11,              [2] W. Zhu, Y. Li, Y. Xu, et al., Interval prediction of fuel cell degradation based on
+ensures both model accuracy and computational efficiency. All models                  voltage signal frequency characteristics with TimesNet-GPR under dynamic
+                                                                                      conditions, J. Clean. Prod. 486 (2025) 144503.
+are trained and evaluated on a system with an Intel(R) Core (TM) i5-              [3] R. Wang, M. Zhu, X. Zhang, Lifetime prediction and maintenance assessment of
+10210U CPU @ 1.60GHz (2.11 GHz), 12.0 GB RAM, running Micro­                          Lithium-ion batteries based on combined information of discharge voltage curves
+soft Windows 11. The model is implemented using Python 3.8 with                       and capacity fade, J. Energy Storage 81 (2024) 110376.
+                                                                                  [4] A. Li, H. Tian, K. Li, Remaining useful life prediction of lithium-ion batteries using
+TensorFlow 2.9.0 backend.                                                             a spatial temporal network model based on capacity self-recovery effect, J. Energy
+                                                                                      Storage 67 (2023) 107557.
+5. Conclusion                                                                     [5] J. Huang, L. Liu, H. Zhao, et al., RUL-Mamba: Mamba-based remaining useful life
+                                                                                      prediction for lithium-ion batteries, J. Energy Storage 120 (2025) 116376.
+                                                                                  [6] S. Peng, D. Zhang, G. Dai, et al., State of charge estimation for LiFePO4 batteries
+    This study proposes SG-DiTs, a novel physics-informed generative                  joint by PID observer and improved EKF in various OCV ranges, Appl. Energy 377
+framework for Lithium-Ion battery RUL prediction. By uniquely inte­                   (2025) 124435.
+grating Savitzky-Golay (SG) filtering with a multidimensional feature             [7] Y. Zhang, F. Feng, S. Wang, et al., Joint nonlinear-drift-driven Wiener process-
+                                                                                      Markov chain degradation switching model for adaptive online predicting lithium-
+extraction strategy and a Diffusion-Transformer backbone, the frame­                  ion battery remaining useful life, Appl. Energy 341 (2023) 121043.
+work effectively models the stochastic degradation trajectories of bat­           [8] A. Tian, H. Yu, Z. Hu, et al., A novel remaining useful life prediction method based
+teries. The model was rigorously validated on two distinct datasets,                  on CNN-Attention combined with SMA-GPR, Energy 321 (2025) 135233.
+                                                                                  [9] J. Kim, S. Sin, J. Kim, Early remaining-useful-life prediction applying discrete
+Toyota and CALCE, across multiple prediction starting points (SP =                    wavelet transform combined with improved semi-empirical model for high-fidelity
+30%, 40%, 50%). Comprehensive comparative experiments were con­                       in battery energy storage system, Energy 297 (2024) 131285.
+ducted against three categories of methods: deterministic deep learning          [10] Y. Xu, C. Jiang, J. Peng, et al., Fault prognosis method for solid oxide fuel cells
+                                                                                      based on mechanism degradation process model and particle filtering, IEEE Trans.
+baselines (CNN-LSTM, CNN-Trans, Trans), a probabilistic baseline                      Power Electron. 38 (6) (2023) 6831–6840.
+(GPR), and feature-ablation variants (DiTs without SG and DiTs-Raw).             [11] M. Wei, M. Ye, C. Zhang, et al., Physics-informed attention networks for state-of-
+The experimental results demonstrate that:                                            charge estimation in electric heavy-duty vehicles on steep slopes, J. Power Sources
+                                                                                      656 (2025) 238114.
+                                                                                 [12] M. Soualhi, K.T.P. Nguyen, K. Medjaher, Explainable RUL estimation of turbofan
+1. SG-DiTs significantly outperforms all deterministic and probabilistic              engines based on prognostic indicators and heterogeneous ensemble machine
+   benchmarks across RMSE, MAE, and R2 metrics, achieving superior                    learning predictors, Eng. Appl. Artif. Intell. 133 (2024) 108186.
+                                                                                 [13] Z. Jin, X. Li, Z. Qiu, et al., A data-driven framework for lithium-ion battery RUL
+   accuracy and robustness even in late-stage degradation.
+                                                                                      using LSTM and XGBoost with feature selection via Binary Firefly Algorithm,
+2. Compared to GPR, the proposed generative paradigm offers more                      Energy 314 (2025) 134229.
+   reliable trajectory reconstruction and uncertainty handling, partic­          [14] N. Cai, X. Que, X. Zhang, et al., A deep learning framework for the joint prediction
+   ularly under highly nonlinear conditions.                                          of the SOH and RUL of lithium-ion batteries based on bimodal images, Energy 302
+                                                                                      (2024) 131700.
+3. The ablation studies verify that the proposed feature engineering             [15] G. Chen, S. Zhong, Y. Yang, et al., A lithium-ion battery health state assessment and
+   strategy, specifically the combination of SG filtering and physics-                remaining useful life prediction method based on multi slope features, J. Energy
+   informed indicators, is essential for stabilizing predictions and                  Storage 130 (2025) 117324.
+                                                                                 [16] F. Guo, H. Lv, X. Wu, et al., A machine learning method for prediction of remaining
+   enhancing the model's interpretability.                                            useful life of supercapacitors with multi-stage modification, J. Energy Storage 73
+                                                                                      (2023) 109160.
+   Future research will focus on further embedding electrochemical               [17] M.J. Izadi, P. Hassani, M. Raeesi, et al., A novel WaveNet-GRU deep learning model
+                                                                                      for PEM fuel cells degradation prediction based on transfer learning, Energy 293
+mechanisms into the diffusion process to address complex failure modes                (2024) 130602.
+and exploring transfer learning techniques to achieve generalization             [18] J. Hu, L. Weng, Z. Gao, et al., State of health estimation and remaining useful life
+across different battery chemistries and operational conditions.                      prediction of electric vehicles based on real-world driving and charging data, IEEE
+                                                                                      Trans. Veh. Technol. 72 (1) (2022) 382–394.
+                                                                                 [19] K. Zhong, Z. Liu, J. Tian, et al., Simultaneous prediction of SOH and RUL for
+CRediT authorship contribution statement                                              lithium-ion batteries using transferable knowledge sharing network, IEEE Trans.
+                                                                                      Power Electron. (2025) 13741–13751.
+                                                                                 [20] Y. Li, X. Qin, M. Chai, et al., SOH evaluation and RUL estimation of lithium-ion
+   Jing Sun: Visualization, Software, Resources, Data curation. Jing­
+                                                                                      batteries based on MC-CNN-TimesNet model, Reliab. Eng. Syst. Saf. 261 (2025)
+fan Gao: Writing – original draft, Visualization, Software, Resources,                111125.
+Methodology.                                                                     [21] M. Sudarshan, A. Serov, C. Jones, et al., Data-driven autoencoder neural network
+                                                                                      for onboard BMS lithium-ion battery degradation prediction, J. Energy Storage 82
+                                                                                      (2024) 110575.
+Declaration of competing interest                                                [22] A. Tang, Y. Jiang, Y. Nie, et al., Health and lifespan prediction considering
+                                                                                      degradation patterns of lithium-ion batteries based on transferable attention neural
+    The authors declare that they have no known competing financial                   network, Energy 279 (2023) 128137.
+                                                                                 [23] P. Li, X. Wu, R. Grosu, et al., Applying neural network to health estimation and
+interests or personal relationships that could have appeared to influence             lifetime prediction of lithium-ion batteries, IEEE Trans. Transp. Electrif. (2024)
+the work reported in this paper.                                                      4224–4248.
+                                                                                 [24] X. Xu, J. Zhou, X. Weng, et al., A novel evidence reasoning-based RUL prediction
+                                                                                      method integrating uncertainty information, Reliab. Eng. Syst. Saf. 250 (2024)
+Acknowledgements                                                                      110250.
+                                                                                 [25] X. Pang, W. Yang, C. Wang, et al., A novel hybrid model for lithium-ion batteries
+   This paper is supported by Shandong Provincial Natural Science                     lifespan prediction with high accuracy and interpretability, J. Energy Storage 61
+                                                                                      (2023) 106728.
+Foundation (No. ZR2024MF126) and Fundamental Research Projects of                [26] K. Xue, J. Yang, M. Yang, et al., An improved generic hybrid prognostic method for
+Science & Technology Innovation and Development Plan in Yantai City                   RUL prediction based on PF-LSTM learning, IEEE Trans. Instrum. Meas. 72 (2023)
+(No. 2023JCYJ043).                                                                    1–21.
+                                                                                 [27] P. Xie, X. Pang, C. Wang, et al., A sequence to sequence prediction model for
+                                                                                      remaining useful life of lithium-ion batteries with Bayesian optimisation process
+Data availability                                                                     visualization, J. Energy Storage 87 (2024) 111346.
+                                                                                 [28] B. Chen, Y. Liu, B. Xiao, A novel hybrid neural network-based SOH and RUL
+    The data that has been used is confidential.                                      estimation method for lithium-ion batteries, J. Energy Storage 98 (2024) 113074.
+                                                                                 [29] J. Li, Z. Wang, D. Tian, et al., A novel RUL prediction framework based on the
+                                                                                      adaptability feature perception fusion model method, J. Energy Storage 119 (2025)
+                                                                                      116322.
+
+
+                                                                            18
+J. Sun and J. Gao                                                                                                                             Journal of Energy Storage 152 (2026) 120479
+
+[30] Y. Huang, P. Zhang, J. Lu, et al., A transferable long-term lithium-ion battery aging        [36] H. Peng, Z. Mao, B. Jiang, PMBCT: the probabilistic multiscale Bayesian
+     trajectory prediction model considering internal resistance and capacity                          convolutional transformer for trustworthy remaining useful life prediction, IEEE
+     regeneration phenomenon, Appl. Energy 360 (2024) 122825.                                          Trans. Reliab. (2024) 3926–3937.
+[31] M. Wei, M. Ye, C. Zhang, et al., Integrating mechanism and machine learning based            [37] X. Hu, L. Tan, T. Tang, M2BIST-SPNet: RUL prediction for railway signaling
+     capacity estimation for LiFePO4 batteries under slight overcharge cycling, Energy                 electromechanical devices, J. Supercomput. 80 (12) (2024) 16744–16774.
+     296 (2024) 131208.                                                                           [38] X. Wang, K. Dai, M. Hu, et al., Lithium-ion battery health state and remaining
+[32] H. Pang, K. Chen, Y. Geng, et al., Accurate capacity and remaining useful life                    useful life prediction based on hybrid model MFE-GRU-TCA, J. Energy Storage 95
+     prediction of lithium-ion batteries based on improved particle swarm optimization                 (2024) 112442.
+     and particle filter, Energy 293 (2024) 130555.                                               [39] D. Wang, M. Cheng, Z. Liu, et al., Timedart: a diffusion autoregressive transformer
+[33] W. Gomez, F.K. Wang, J.H. Chou, Li-ion battery capacity prediction using                          for self-supervised time series representation, arXiv (2024) preprint arXiv:
+     improved temporal fusion transformer model, Energy 296 (2024) 131114.                             2410.05711.
+[34] X. Yao, K. Su, H. Zhang, et al., Remaining useful life prediction for lithium-ion            [40] D. Cao, W. Ye, Y. Zhang, et al., Timedit: general-purpose diffusion transformers for
+     batteries in highway electromechanical equipment based on feature-encoded                         time series foundation model, arXiv (2024) preprint arXiv: 2409.02322.
+     LSTM-CNN network, Energy 323 (2025) 135719.                                                  [41] W. Peebles, S. Xie, Scalable diffusion models with transformers, in: Proceedings of
+[35] S. Peng, S. Chen, Y. Liu, et al., State of power prediction joint fisher optimal                  the IEEE/CVF International Conference on Computer Vision, 2023, pp. 4195–4205.
+     segmentation and PO-BP neural network for a parallel battery pack considering cell
+     inconsistency, Appl. Energy 381 (2025) 125130.
+
+
+
+
+                                                                                             19
+

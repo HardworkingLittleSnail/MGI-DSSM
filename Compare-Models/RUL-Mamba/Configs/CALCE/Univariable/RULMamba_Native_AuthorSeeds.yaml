@@ -1,0 +1,24 @@
+model:
+  name: RULMamba
+  class_path: Models.RULMamba.RULMambaNetModel
+  build_args:
+    seq_len: 64
+    pred_len: 1
+    enc_in: 1
+    c_out: 1
+    d_model: 48
+    n_dec_layer: 1
+    dropout: 0.0615
+    expand: 2
+
+train:
+  # Original RUL-Mamba convention: runtime seed 2025 plus repeat_index - 1.
+  seeds: [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034]
+
+output:
+  outputs_dir: Outputs/CALCE/Univariable/RULMamba_Native_AuthorSeeds
+  logs_dir: Logs/CALCE/Univariable/RULMamba_Native_AuthorSeeds
+
+loss:
+  name: SMAPE
+

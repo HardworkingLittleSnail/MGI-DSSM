@@ -1,0 +1,42 @@
+{
+  "protocol": "MGI-DSSM-aligned IC2ML RUL evaluation",
+  "task": "past_10_cycles_to_next_capacity_and_threshold_RUL",
+  "seed": 37,
+  "test_battery": "CS2_35",
+  "best_epoch": 15,
+  "best_validation_mae_ah": 0.0320957750082016,
+  "folds": [
+    {
+      "mae": 0.03409039326241215,
+      "rmse": 0.0423803993425467,
+      "r2": 0.9588022358651463,
+      "RUL_real": 441,
+      "RUL_pred": 440,
+      "AE": 1,
+      "RE": 0.0022727272727272726,
+      "direct_rul_mae_cycles": 47.32037612560204,
+      "direct_rul_rmse_cycles": 68.26682306096049,
+      "test_battery": "CS2_35",
+      "start_point": 200,
+      "num_windows": 683
+    }
+  ],
+  "config": {
+    "dataset": "calce",
+    "output_root": "audit_paper_cross_attention",
+    "test_batteries": [
+      "CS2_35"
+    ],
+    "seeds": [
+      37
+    ],
+    "seq_len": 10,
+    "epochs": 300,
+    "batch_size": 128,
+    "hidden_dim": 256,
+    "learning_rate": 0.0001,
+    "validation_fraction": 0.15,
+    "patience": 50,
+    "feature_source": "10-point incremental charge-capacity curve over 3.9-4.0 V"
+  }
+}

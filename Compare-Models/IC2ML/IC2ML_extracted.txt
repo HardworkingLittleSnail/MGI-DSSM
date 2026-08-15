@@ -1,0 +1,660 @@
+                                                                 Journal of Power Sources 666 (2026) 239148
+
+
+                                                                   Contents lists available at ScienceDirect
+
+
+                                                               Journal of Power Sources
+                                                       journal homepage: www.elsevier.com/locate/jpowsour
+
+
+
+
+IC2ML: Unified battery state-of-health, degradation trajectory and
+remaining useful life prediction via intra-cycle and inter-cycle enhanced
+machine learning
+Xinghao Huang a,1 , Chen Liang a,1 , Shengyu Tao a,b,c,* , Yunhong Che d , Ningyu Bian a,
+Jiale Zhang a , Runhua Wang a , Yuqi Zhang a, Bizhong Xia a,**, Xuan Zhang a,***
+a
+  Tsinghua Shenzhen International Graduate School, Tsinghua University, Shenzhen, 518055, China
+b
+  Department of Civil and Environmental Engineering, UC Berkeley, Berkeley, CA, 94720, USA
+c
+  Department of Electrical Engineering, Chalmers University of Technology, Gothenburg, 41296, Sweden
+d
+  Department of Chemical Engineering, Massachusetts Institute of Technology, 02139, Cambridge, MA, USA
+
+
+
+
+H I G H L I G H T S
+
+• IC2ML, a unified framework jointly predicting SOH, degradation trajectory, and RUL, is proposed.
+• Health indicator are extracted from both 1-D voltage time series and 2-D images of voltage-capacity data.
+• Spatiotemporal interaction among SOH, degradation trajectory and RUL is implemented through attention-based methods.
+• The generalizability of IC2ML is validated with batteries of 3 materials and 10 operating conditions.
+• IC2ML can adapt to limited data and extend to 100-cycle trajectory prediction with 1.77 % RMSE.
+
+
+
+A R T I C L E I N F O                                    A B S T R A C T
+
+Keywords:                                                Strategic management of lithium-ion batteries (LIBs) depends on evaluating current health status and predicting
+Lithium-ion batteries                                    future degradation paths. Despite extensive research on core management tasks like state of health (SOH)
+State of health                                          estimation, degradation trajectory prediction, and remaining useful life (RUL) prediction, these tasks remain
+Degradation trajectory
+                                                         isolated without leveraging their inherent connections. This work proposes an unified framework that enables
+Remaining useful life
+Machine learning
+                                                         joint battery SOH, degradation trajectory and RUL prediction via an intra-cycle and inter-cycle enhanced ma­
+                                                         chine learning (IC2ML). IC2ML uses 1-D time-serials voltage data to implement SOH prediction, where inter-cycle
+                                                         embeddings are further self-attention for degradation trajectory prediction. The RUL is derived from degradation
+                                                         trajectory prediction based on anticipated SOH levels, enabled by cross attention between output embeddings
+                                                         and input inter-intra cycle embeddings. The results demonstrate that using 0.1V sampling interval data that can
+                                                         be extracted onsite, the average root mean square error for SOH, degradation trajectory, and RUL prediction is
+                                                         1.85 %, 2.36 % and 23.90 cycles, respectively, validated on 121 batteries spanning 10 operation conditions.
+                                                         Sensitivity analysis shows that IC2ML can be adapted to scenarios where a few historical data is accessible.
+                                                         Broadly, this work highlights the potential of strategical battery algorithm co-design using intra-cycle and inter-
+                                                         cycle battery degradation information for various management tasks.
+
+
+
+
+    * Corresponding author. Department of Civil and Environmental Engineering, UC Berkeley, Berkeley, CA, 94720, USA.
+    ** Corresponding author.
+    *** Corresponding author.
+      E-mail addresses: shengyu.tao@chalmers.se (S. Tao), xiabz@sz.tsinghua.edu.cn (B. Xia), xuanzhang@sz.tsinghua.edu.cn (X. Zhang).
+    1
+      Stands for the authors have equal contributions.
+
+https://doi.org/10.1016/j.jpowsour.2025.239148
+Received 1 August 2025; Received in revised form 4 November 2025; Accepted 17 December 2025
+Available online 30 December 2025
+0378-7753/© 2025 The Authors. Published by Elsevier B.V. This is an open access article under the CC BY license (http://creativecommons.org/licenses/by/4.0/).
+X. Huang et al.                                                                                                          Journal of Power Sources 666 (2026) 239148
+
+
+1. Introduction                                                                    From a physical perspective, the current SOH point is the starting pos­
+                                                                                   tion of future degradation trajectories, depending on the future opera­
+    Lithium-ion batteries (LIBs), leveraging their high energy density             tion conditions; while the RUL is the anticipated remaining time or
+and long duration advantages, have been deeply integrated into core                cycles under defined end-of-life threshold of one of the degradation
+fields such as electric vehicles [1], consumer electronics [2], and smart          trajectories [36]. From a data perspective, data from different sampling
+grids [3]. However, like most electromechanical systems, LIBs inevitably           points within the same cycle exhibit short-term degradation informa­
+experience performance degradation during prolonged operation [4],                 tion, while performance changes between adjacent cycles contain key
+especially under dynamic temperature and load conditions typical of                information about long-term degradation [14]. Recent advances have
+electric vehicle and energy storage system applications, which manifests           highlighted the significance of structured temporal modeling. The Bat­
+as capacity loss, reduced charging efficiency, and increased safety con­           teryLife demonstrated that representing each charge-discharge cycle as
+cerns [5]. Particularly in large-scale application scenarios such as new           an independent "token" and sequentially modeling intra-cycle and
+energy vehicles and energy storage power stations, even slight attenu­             inter-cycle dependencies can effectively enhance life prediction perfor­
+ation of battery performance may trigger future systemic risks [6,7].              mance [37]. Meanwhile, Some studies introducing inter-cell learning,
+Therefore, how to establish the evaluation of current health status and            capturing cross-cell correlations under heterogeneous ageing conditions
+the prediction of future degradation paths through non-destructive                 to improve robustness and early-life prediction accuracy [38]. These
+methods has become a key link in ensuring the reliability and safety               studies have collectively validated the importance of hierarchical
+of energy systems [8,9].                                                           time-series representation and cell heterogeneity modeling for battery
+    Capacity fading, as a core indicator for measuring battery perfor­             prognostics. Nevertheless, both approaches still focus primarily on
+mance degradation, has always been the focus of industrial attention               single-task lifetime prediction, leaving the intrinsic relations among
+[10]. Whether it is the pursuit of high yield by battery manufacturers             SOH, degradation trajectory, and RUL unexplored. The lack of inte­
+[11], the real-time monitoring needs of on-board battery management                grated modeling that jointly consider the current health status and
+systems (BMS) [12], or the evaluation of echelon utilization by battery            future degradation trajectories makes it difficult for models to capture
+recycling enterprises, all revolve around maximizing the value of the              the synergistic evolution of multi-dimensional health patterns during
+battery life cycle under the premise of ensuring safety. Although the              battery degradation.
+traditional full charge-discharge capacity test can intuitively reflect the            This study proposes a unified framework enabling joint prediction of
+current maximum available capacity of the battery, it is time-consuming            battery SOH, degradation trajectory, and RUL via intra-cycle and inter-
+[13] and cannot effectively predict the nonlinear degradation process              cycle enhanced machine learning (IC2ML). As shown in Fig. 1a, IC2ML
+caused by complex coupling mechanisms [14–17] such as impedance                    utilizes 1-D time-series voltage data sampled from random voltage in­
+rise (IR), lithium inventory loss (LLI), and loss of active material (LAM),        tervals for SOH prediction, and combines self-attention mechanisms to
+making it difficult to predict the future battery performance [18–20].             capture inter-cycle differences for future degradation trajectory pre­
+The method relying on destructive disassembly for evaluation is more               diction. The RUL is defined as the result derived from degradation tra­
+direct, but this method causes additional damage to the battery itself             jectory prediction and anticipated SOH levels within a future time
+[21,22]. How to perform rapid, non-destructive, and comprehensive                  horizon, implemented via a cross-attention mechanism between output
+health management of batteries remains a challenge[23–25].                         embeddings of inter-cycle and intra-cycle embeddings of 2-D image
+    In recent years, research work has focused on physics-based top-               data. This architecture effectively breaks the bottleneck of traditional
+down models (such as equivalent circuit models or electrochemical                  methods in representational capability for intra-cycle 1-D spatial data,
+state-space models) to characterize battery degradation by simulating              achieving spatiotemporal unified modeling of three health states during
+voltage, current, and temperature behaviors for health management.                 battery aging. As shown in Fig. 1b, the trained model can realize
+However, these methods face challenges in terms of changes in different            comprehensive health management throughout the entire lifecycle
+operating parameters and calibration of batteries [26,27]. Data-driven             using only a small amount of easily accessible random samples from
+methods, including deep learning algorithms, can learn complex                     0.1V voltage intervals. Validated on 121 batteries covering 10 operating
+degradation model patterns and relationships from the statistical char­            conditions, the average RMSE for the SOH task is 2.08 %, with average
+acteristics of data or in an end-to-end manner[28–31]. For example, in             RMSEs of 2.23 % and 55.69 cycles for degradation trajectory prediction
+terms of state of health (SOH) estimation, some teams have achieved                and RUL prediction, respectively. Further sensitivity analysis demon­
+effective estimation of SOH based on arbitrary charging segments using             strates that IC2ML can adapt to scenarios with limited historical data:
+the transformer architecture [32]. However, these approaches only                  when initialized with only the first 10 cycles of data, the average RMSE
+evaluate the current health status while neglecting the prediction of              for RUL prediction is 65 cycles. Additionally, degradation trajectory
+future degradation paths. In the field of life prediction and degradation          prediction can be extended to 100 cycles with high precision, achieving
+analysis, some studies have achieved high-precision degradation tra­               an average RMSE of 2.20 %. Compared with state-of-the-art data-driven
+jectory and life prediction by building physics-informed models based              methods for batteries, IC2ML achieves an average accuracy improve­
+on initial manufacturing differences in early cycles [7], but they fail to         ment of 21 % for SOH estimation tasks and 12 cycles for RUL prediction
+validate their capability in full-lifecycle management. Based on these             task. Overall, this study highlights the significant potential of strategi­
+limitations, comprehensive management of a battery's current health                cally collaborative design of battery management algorithms using
+status and future degradation through multi-task learning is regarded as           intra-cycle and inter-cycle battery degradation information, which can
+a promising solution for effective battery health management [8,33].               be applied to various management tasks such as SOH, degradation tra­
+Some research has established transferable models to simultaneously                jectory, and RUL prediction and beyond.
+predict remaining useful life (RUL) and SOH based on capacity incre­
+ment differences in partial cycles, but they ignore the degradation tra­           2. Dateset
+jectory from the current SOH to the end of life, and treating RUL
+prediction as a downstream task of SOH prediction inherently has cu­                  This work employs three batches of batteries as case studies, with the
+mulative errors [34]. Some studies start from the correlation between              batteries tested under different operating conditions, each batch un­
+RUL and SOH, and take RUL prediction as an auxiliary task for pre­                 dergoing testing throughout its full service life until the end of life
+dicting degradation trajectories, but the maximum capacity of historical           (EOL). Batch 1 consists of LiNi0.86 Co0.11 Al0.03 O2 positive electrode (NCA
+cycles required is often difficult to obtain in practical applications [35].       battery) with 3500mAh nominal capacity and cutoff voltages of
+Even within the promising multi-task learning frameworks, these tasks              2.65–4.2 V.
+remain isolated and fail to fully leverage their inherent connections.                Batch 2 contains LiNi0.83 Co0.11 Mn0.07 O2 positive electrode (NCM
+
+                                                                               2
+X. Huang et al.                                                                                                             Journal of Power Sources 666 (2026) 239148
+
+
+
+
+Fig. 1. Model architecture, deployment, and performance. (a) Data collected from multiple real-world scenarios are used for intra-cycle and inter-cycle modeling
+through 1-D time series and 2-D image features, respectively, to comprehensively manage multiple battery health tasks. (b) The trained model enables compre­
+hensive health management using only a small amount of easily accessible data. (c) Performance examples of the model on three tasks.
+
+
+battery) with 3500mAh nominal capacity and cutoff voltages of 2.5–4.2              different cycles, which further underscores the effectiveness of collab­
+V. Batch 3 includes 42 (3) wt.% Li(NiCoMn)O2 blended with 58 (3) wt.%              orative modeling from both intra-cycle and inter-cycle perspectives.
+Li(NiCoAl)O2 positive electrode (NCM + NCA battery) with 2500mAh                   Fig. 2d presents the Pearson correlation between RUL and the maximum
+nominal capacity and cutoff voltages of 2.5–4.2 V. All batteries were              capacity of the current cycle across different materials and operating
+cycled in a thermal chamber under three temperatures (25 ◦ C, 35 ◦ C, and          conditions, with correlations exceeding 90 % in all datasets. This in­
+45 ◦ C) with variable charging rates (from 0.25C to 1C) and variable               dicates the interrelated nature of different health state characterizations.
+discharging rates (from 1C to 4C). Each battery underwent the same
+operating conditions throughout its lifecycle until reaching EOL (see              3. Method
+Supplementary Table 1 for details). These datasets do not include
+cycling data under extreme conditions and are designed to simulate the             3.1. Intra cycle embedding and intra-inter cycle embedding
+requirements of EV application scenarios.
+    The degradation trajectories in Fig. 2a demonstrate the variability                We normalize the data solely by dividing the capacity increment by
+observed in cycling tests. Fig. 2b illustrates the relationship between            the rated capacity to unify data dimensions, a method independent of
+initial capacity and RUL, Even with similar initial capacities, different          sample size. Additionally, we perform intra-cycle embedding on the
+batteries exhibit noticeable variations in RUL. This significant dispersion        original capacity sampling sequence, treating each cycle's data as a
+indicates that the battery degradation process is influenced by multiple           token to learn the relationship between capacity increments at sampling
+coupled factors (such as manufacturing differences, operating condi­               points and battery aging:
+tions, and internal chemical non-uniformities), making RUL prediction a
+                                                                                   X1D− embed = EmbedIntra (X1D ) = LN(W2 σ (W1 X1D + b1 ) + b2 )                 (1)
+highly nonlinear, complex, and individualized task. Fig. 2c visualizes the
+two-dimensional image features of input data under selected segments.              where, X1D ∈ R10×cycles , W1 ∈ Rdmodel ×10 , W2 ∈ Rdmodel ×dmodel , EmbedIntra
+At different sampling time steps within a single cycle, varying capacity           represents the intra-cycle embedding. LN representation Layer nomi­
+increase rates are observed due to distinct chemical reactions. Notably,           nalization. cycles represents the number of cycles in historical data, and
+significant differences also exist at the same sampling time steps across
+
+                                                                               3
+X. Huang et al.                                                                                                                 Journal of Power Sources 666 (2026) 239148
+
+
+
+
+Fig. 2. Dataset Description. (a) Capacity degradation trajectories of the selected batteries. (b) Distribution relationship between initial capacity and RUL of the
+selected batteries. (c) Intra-cycle and inter-cycle differences during battery degradation. (d) Pearson correlation coefficient between current SOH and RUL. (e)
+Visualization of capacity curves in the selected interval reflecting battery degradation from a two-dimensional image perspective.
+
+
+dmodel represents the dimension of the hidden layer.                                 3.2. Inter-cycle self-attention
+    The temporal variations at each observation point exhibit two
+characteristic variation patterns: intra-cycle variations representing                   Battery degradation trajectories are influenced by multiple coupled
+sequential changes between consecutive sampling points, and inter-                   aging modes, leading to variations both within cycles and at corre­
+cycle variations reflecting systematic differences at the same stage                 sponding sampling time steps across cycles. After intra-cycle embed­
+across different cycles. However, the original 1-D structure of the time             ding, we employ an inter-cycle self-attention mechanism to capture
+series can only reflect changes between adjacent time points. We focus               aging disparities during different battery cycles. By modeling the tem­
+on 2D structure of time series that embodies battery aging. Such struc­              poral dependencies in the cycle sequence, this mechanism effectively
+tures can present intra-cycle and inter-cycle variations, offering greater           extracts long-term degradation features and adaptively focuses on crit­
+advantages in representational capacity. We treat the charging curves of             ical cycles that significantly impact future battery degradation. First,
+historical cycles as 2D images, allowing intra-cycle and inter-cycle in­             positional encoding is applied to each embedded cycle:
+formation to be extracted via 2D convolution.                                                          (            )
+                                                                                                            pos
+X2D− embed = Embedinter− intra (X2D ) = LN(W4 Inception(X2D ) + b4 )       (2)       PE(pos, 2i) = sin          2i
+                                                                                                                                                          (3)
+                                                                                                        10000dmodel
+where, X2D ∈ R1×cycles×10 , and for Embedinter− intra , we adopt the classic                                 (              )
+Inception block from the computer vision (CV) domain to demonstrate                                              pos
+                                                                                     PE(pos, 2i + 1) = cos             2i
+                                                                                                                                                                      (4)
+the universality of this approach and process the 2D tensor [39], W4 ∈                                       10000dmodel
+Rdmodel ×128 .
+                                                                                     where pos is the position vector, and i is the cycle index.
+                                                                                                                 (            )
+                                                                                                                   QKT
+                                                                                     Attention(Q, K, V) = softmax √̅̅̅̅̅̅̅̅̅̅̅ V                                      (5)
+                                                                                                                    dmodel
+
+
+                                                                                 4
+X. Huang et al.                                                                                                               Journal of Power Sources 666 (2026) 239148
+
+
+In the self attention mechanism, K, Q, V represent key(K), query(Q) and                 4. Result and analysis
+value(V), respectively, and dmodel denotes the input dimension
+                                                                                        4.1. Model performance and generalization capability
+
+
+
+
+XIA = Inter − cycle attention(X1D− embed ) = W3 ⋅ flatten(LN(X1D− embed + Self Attention(X1D− embed + PE))) + b3                                                    (6)
+
+
+
+    We apply an Inter-cycle self-attention mechanism to the vectors after                   This section aims to demonstrate the effectiveness of the proposed
+intra-cycle embedding to model relationships between cycles,.                           method from multiple dimensions. As shown in Fig. 3a, we visualize the
+Following a residual network, the flattened vector of each cycle is                     results of one experiment out of ten. It can be observed that the proposed
+mapped to the hidden dimension dmodel via a fully connected layer W3 ∈                  method exhibits superior performance in real-time SOH estimation
+Rcycles⋅dmodel ×dmodel .                                                                across three battery materials under different operating conditions. The
+                                                                                        average RMSE for the three materials is 1.82 %, with a standard devi­
+                                                                                        ation of 1.69 %. Moreover, the estimation performance on the NCMNCA
+3.3. Multi-modal cross-attention
+                                                                                        dataset is more stable, with the maximum RMSE not exceeding 6.93 %.
+                                                                                        This level of accuracy is achieved merely based on a 0.1V sampling
+    Modeling battery aging with 1-D time series and 2-D image features
+                                                                                        segment. For the NCA dataset, he overall RMSE is relatively large at
+offers different dimensions and information granularity. We employ a
+                                                                                        2.28 %, the RMSE of some samples reaches 8.75 %, which may be
+cross-attention mechanism to bridge these two modalities. We enable
+                                                                                        attributed to significant sampling errors in the data itself.
+interaction between the self-attention-modeled vectors of each cycle and
+                                                                                            Fig. 3b presents the RUL prediction results across different datasets.
+the embedded image feature vectors.
+                                                                                        We randomly selected one experimental result from ten trials involving
+XMMA =Multi− modal Attention(X2D− embed ,XIA )                                          three materials and four operating conditions for case analysis, with the
+                                                                              (7)       complete results provided in Supplementary Figs. 5–7. It is evident that
+       =Cross Attention(X2D− embed ,XIA )
+                                                                                        the best performance is achieved on the NCMNCA dataset, with an
+                                                                                        average error of only 5 cycles. This can be attributed, on one hand, to the
+3.4. Multi-task learning for comprehensive battery health management                    effective long-term temporal modeling of battery aging data by the
+                                                                                        proposed method, and on the other hand, to the more linear degradation
+   We model comprehensive and in-depth battery aging information                        trajectory of the NCMNCA dataset compared to others, which simplifies
+through multi-modal intra-cycle and inter-cycle analysis.For single-                    the prediction task. In contrast, the prediction performance on the NCA
+cycle SOH estimation, we directly estimate SOH from the intra-cycle                     dataset is relatively poorer, with an average error of 60 cycles. As shown
+embedded vectors.                                                                       in Fig. 2b, cells with similar initial capacities may follow markedly
+YSOH = WSOH X1D− embed + bSOH                                                 (8)       different degradation paths, resulting in broader distribution spread and
+                                                                                        more pronounced nonlinearity in later stages. This increases the
+   For SOH estimation, we use a linear transformation WSOH ∈ R      .    1×dmodel
+                                                                                        intrinsic uncertainty of long-horizon RUL prediction, especially when
+For future degradation trajectory prediction, we leverage the vectors                   future degradation trajectories diverge significantly under similar initial
+obtained from intra-cycle embedding and inter-cycle self-attention                      states. Furthermore, the NCA cells demonstrate more evident inflection
+applied to 1-D time series.                                                             points and local fluctuations in their degradation curves, introducing
+                                                                                        higher temporal non-stationarity that challenges sequence-based pre­
+YTra = WTra XIA + bTra                                                        (9)
+                                                                                        diction models.
+                                                                                            Fig. 3c illustrates the prediction results of the three tasks during the
+where WTra ∈ Rhorizon×dmodel , with "horizon" denoting the prediction
+                                                                                        early, middle, and late stages of degradation. For the RUL prediction
+length of the degradation trajectory. For RUL prediction, we use the
+                                                                                        task, the errors for the three materials in the early and late stages are 35,
+vectors processed by combining the two modal inputs for prediction.
+                                                                                        44, 13 and 6, 25,10 cycles respectively, with significantly higher accu­
+YRUL = WRUL XMMA + bRUL                                                     (10)        racy in the late stage than in the early stage. This indicates that batteries
+                                                                                        with different RULs do not exhibit substantial performance differences
+where, WRUL ∈ R1×dmodel . During the training process, these three pre­                 in the early manufacturing stage. Additionally, the lower prediction
+diction subtasks are optimized simultaneously, and the loss function                    accuracy for NCM batteries highlights the challenges of prediction based
+consists of the following three components:                                             on extremely limited historical cycles and sampling intervals. For the
+               N ⃦
+                                                                                        SOH prediction task, the accuracy remains stable across the early,
+            1 ∑                 ⃦2
+                                                                                        middle, and late stages for all three materials, with average errors of
+LossSOH =         ⃦ Ŷ
+                     SOH − YSOH
+                     i      i   ⃦                                           (11)
+            N i=1                                                                       2.23 %, 1.50 %, and 2.22 % respectively. Given that only a 0.1V sam­
+                                                                                        pling interval is used, this accuracy meets the requirements of most
+               N ⃦
+            1 ∑                 ⃦2                                                      practical applications. For the degradation trajectory prediction task:
+LossTra =         ⃦Y
+                   ̂
+                     Tra − YTra
+                     i      i ⃦
+                                                                            (12)
+            N i=1                                                                       For NCA batteries, larger discrepancies are observed in the early stage,
+                                                                                        with a RMSE of 2.27 % and a standard deviation of 1.65 %, while the
+            1 ∑N ⃦              ⃦2                                                      middle stage shows higher accuracy (RMSE: 1.72 %, standard deviation:
+LossRUL =         ⃦ Ŷ      i
+                     RUL − YRUL
+                     i          ⃦                                           (13)        1.87 %), which may be related to the degradation inflection points
+            N i=1
+                                                                                        focused on in many existing studies. For NCM batteries, larger errors
+                                                                                        appear in the early stage, with an average RMSE of 3.03 % and a stan­
+Loss = αLossSOH + βLossTra + γLossRUL                                       (14)
+                                                                                        dard deviation of 2.60 %. For NCMNCA batteries, stable performance is
+   We set α = 1, β = 1, γ = 0.5 for experiments, though other hyper­                    observed in the early and middle stages (average RMSE: 1.79 % and
+parameter may yield better results.
+
+                                                                                    5
+X. Huang et al.                                                                                                                Journal of Power Sources 666 (2026) 239148
+
+
+
+
+Fig. 3. Results and analysis. (a) SOH prediction results of the model on three datasets. (b) RUL prediction results under partial operating conditions. (c) Performance
+analysis of the three tasks at different lifecycle stages.
+
+
+1.24 % respectively), while a larger error occurs in the middle-late stage                 In the SOH estimation task, it can be observed that in all three
+(average RMSE: 2.45 %, standard deviation: 1.08 %).                                    datasets, the prediction errors after removing the one-dimensional time
+   Fig. 4a, b, and c show the results of ablating different modules of the             series module are relatively larger, at 3.38 %, 4.82 %, and 2.87 %
+proposed method to investigate their contributions to the prediction                   respectively. This indicates that for the capacity prediction task, intra-
+outcomes. Specifically, two ablation experiments were conducted: 1)                    cycle modeling contains richer information compared to inter-cycle
+Removing the one-dimensional time series input and using only two-                     modeling relationships. Using only 2-D image features as input
+dimensional images for multiple prediction tasks; 2) Removing the                      weakens the ability to learn intra-cycle information to some extent,
+two-dimensional image feature input and using only one-dimensional                     leading to a decline in the SOH prediction performance for the current
+time series for multiple prediction tasks. Detailed ablation experi­                   cycle.
+ments are provided in Supplementary Note 4.                                                For the RUL prediction task, the removal of the 2D image module in
+
+                                                                                   6
+X. Huang et al.                                                                                                        Journal of Power Sources 666 (2026) 239148
+
+
+
+
+Fig. 4. Ablation experiments. (a) Performance analysis of SOH estimation on three datasets. (b) Performance analysis of RUL prediction on three datasets. (c)
+Performance analysis of degradation trajectory prediction on three datasets. two ablation experiments were conducted, Our-wo1D:Removing the one-dimensional
+time series input and using only two-dimensional images for multiple prediction tasks, Our-wo2D:Removing the two-dimensional image feature input and using
+only one-dimensional time series for multiple prediction tasks.
+
+
+the NCA dataset significantly affected the model performance. The                 demonstrated significant performance degradation across the three
+average RMSE of the prediction error increased from 19.38 cycles (with            datasets. In the NCA dataset, the average MAPE increased from 1.24 %
+a standard deviation of 11.60) in the original model to 21.06 cycles              to 1.53 % and 2.39 % respectively; in the NCM dataset, the average
+(with a standard deviation of 12.95). In contrast, an interesting phe­            RMSE rose from 0.55 % to 1.72 % and 2.06 % respectively. This further
+nomenon was observed for the NCMNCA dataset, where both ablation                  validates the effectiveness of the proposed scheme.degraded after
+schemes led to slightly improved performance, with the average RMSEs              ablation. For the NCA dataset, the average MAPE increased from 1.21 %
+of the three models being 15.28 %, 13.92 %, and 13.99 %, respectively.            to 1.81 % and 1.79 % respectively; for the NCM dataset, the average
+This outcome stems from the inherent linearity of the degradation tra­            RMSE increased from 0.74 % to 1.61 % and 1.60 % respectively. These
+jectories in the NCMNCA cells, where the capacity fading follows a near-          results further demonstrate the effectiveness of the proposed scheme.
+linear trend throughout the lifetime. In such cases, the prediction task
+becomes relatively straightforward, and introducing more complex                  4.2. Uncertainty analysis
+spatiotemporal modules may introduce redundant representations or
+amplify minor noise components, resulting in marginally degraded                      This section aims to investigate the uncertainty of the model and its
+performance. Therefore, the reduced gap between the full and ablated              sensitivity to relevant hyperparameters. As shown in Fig. 5a, we
+models does not indicate the insignificance of the intra- or inter-cycle          compared two models: CRNN [34], which had been proven to exhibit
+features, but rather reflects the data distribution characteristics of            superior performance, and BiLSTM, a commonly used model in the field
+NCMNCA batteries. Under more nonlinear degradation behaviors, as                  of temporal modeling. We used NCM batteries as a case study, and the
+observed in the NCA and NCM datasets, the full IC2ML framework                    results are shown in Table 2. In the capacity prediction task, the average
+demonstrates clear advantages, confirming the necessity of jointly                MAE of the three models (including our proposed model) was 1.67 %,
+modeling intra- and inter-cycle information for comprehensive health              1.86 %, and 2.48 % respectively. For the BiLSTM model, some samples
+management.                                                                       showed an estimation error exceeding 5.00 %. In the degradation tra­
+    In the trajectory prediction task, both ablation schemes                      jectory prediction task, the average MAE of the three models was 1.53
+
+                                                                              7
+X. Huang et al.                                                                                                            Journal of Power Sources 666 (2026) 239148
+
+
+
+
+Fig. 5. Uncertainty analysis. (a) Performance comparison with current popular models. (b) Correlation analysis between training data volume and model perfor­
+mance. (c) Impact of different hyperparameters on model performance. (d) Prediction results cross-operation-condition.
+
+
+%, 1.90 %, and 2.21 % with standard deviations of 0.44 %, 0.77 %, and
+                                                                                  Table 1
+0.68 % respectively. Our model achieved the most stable and effective
+                                                                                  Literature review of existing approaches.
+prediction results, indicating its effectiveness in temporal modeling. For
+the RUL prediction task, there was no significant difference among the             References    SOH    Trajectory   RUL      Inter-          inter-   Task
+                                                                                                                              intra           cell     collaboration
+three models, with average MAEs of 23.50, 29.47, and 35.31 cycles
+                                                                                                                              cycles
+respectively, demonstrating the effectiveness of the selected model in
+                                                                                   [32]
+temporal modeling, but its poor performance in the other two tasks                               ✓      ​            ​        ​               ​        ​
+                                                                                   [7]           ​      ✓            ✓        ​               ​        ​
+highlights the challenges of comprehensive health management                       [34]          ✓      ​            ✓        ​               ​        ✓
+throughout the entire lifecycle. Meanwhile, we employed three models               [37]          ​      ​            ✓        ✓               ​        ​
+including Transformer, CNN, and GRU for separate single-task learning.             [35]          ​      ✓            ✓        ​               ​        ✓
+It was observed that Transformer exhibited a relatively large error in the         [38]          ​      ​            ✓        ​               ​        ​
+                                                                                   IC2ML
+SOH estimation task, which might be attributed to insufficient training
+                                                                                                 ✓      ✓            ✓        ✓           ​            ✓
+
+data. In contrast, GRU performed relatively well in the degradation
+
+                                                                              8
+X. Huang et al.                                                                                                        Journal of Power Sources 666 (2026) 239148
+
+
+Table 2                                                                           consistent with observations from other studies.
+The summary of estimation errors for the NCM dataset using various methods.           For the availability of historical data, increasing the length of
+  Method          State of health    Degradation     Remaining useful life        accessible historical data significantly improved the performance of RUL
+                                     trajectory                                   and degradation trajectory prediction, with average RMSEs decreasing
+                  RMSE        MAE    MAPE     MAE    RMSE         MAE             to 30.95 cycles (standard deviation: 18.02) and 1.66 % (standard de­
+                  (%)         (%)             (%)    (cycles)     (cycles)        viation: 0.42 %) respectively. Conversely, reducing the length of his­
+  Our             1.75        1.66   0.55     1.53   30           23
+                                                                                  torical data increased the RUL prediction error from 34.42 to 36.96
+  Our (wo1D)      4.81        4.35   1.61     4.58   29           24              cycles. These results confirm a positive correlation between the avail­
+  Our (wo2D)      1.80        1.51   1.60     4.57   30           25              ability of historical data, RUL prediction length, and the accuracy of
+  CRNN            2.38        1.86   0.67     1.90   30           22              degradation trajectory prediction. Compared to other studies with strict
+  BILSTM          3.01        2.48   0.79     2.21   35           29
+                                                                                  data requirements, our method achieves superior performance using
+  Transformer     2.23        1.82   \        \      \            \
+  GRU             \                  0.70     1.99                \               only 5 cycles of data within a 0.1 V sampling interval.
+  CNN             \           \               \      44           32                  In Fig. 5d, we analyzed the model's capability for cross-condition
+                                                                                  prediction. Specifically, we mixed data from different operating condi­
+                                                                                  tions of NCMNCA material batteries for simultaneous training and pre­
+trajectory prediction task, reflecting the strong temporal dependencies           diction. In the SOH prediction task, the average RMSE was 1.67 % with a
+inherent in battery aging.The detailed results obtained using different           standard deviation of 1.63 %. In the degradation trajectory prediction
+methods are presented in Table 1.                                                 task, the average RMSE was 1.82 % with a standard deviation of 1.72 %,
+    Fig. 5b presents an analysis of the proposed method's robustness              and the average RUL prediction was 13.26 cycles. This indicates that the
+under limited training data. For the SOH estimation task, when 100 %,             proposed method has good generalization ability and can learn the
+60 %, and 20 % of the training data were used, the average RMSEs were             charging differences caused by different operating conditions. Addi­
+1.96 %, 2.12 %, and 2.96 %, respectively, with standard deviations of             tionally, we present the prediction results of simultaneous cross-material
+0.79 %, 1.08 %, and 1.70 %. Notably, reducing the training data did not           and cross-condition scenarios in Supplementary Fig. 8, further demon­
+always degrade estimation accuracy; in certain operating conditions, the          strating the potential of the proposed method to become a pre-trained
+model trained with 60 % of the data even outperformed the one trained             unified battery management large model in the future.
+with 100 %. This indicates that SOH estimation relies less heavily on
+large data volumes, as it depends more on local degradation represen­
+                                                                                  5. Discussion
+tations than long-term dynamics. For the degradation trajectory pre­
+diction task, with 100 %, 60 %, and 20 % of the training data, the
+                                                                                      Existing health management methods overlook the inherent con­
+average RMSEs were 4.56 %, 4.61 %, and 6.14 %, respectively, with
+                                                                                  nections among various battery management tasks such as SOH esti­
+standard deviations of 2.67 %, 2.85 %, and 3.87 %. As expected, both
+                                                                                  mation, degradation trajectory prediction, and RUL prediction, thus
+accuracy and robustness improved with more training data, and a
+                                                                                  treating each task isolated. The degradation trajectory is initially
+notable decline occurred when the available data dropped to 20 %. For
+                                                                                  anchored at the current SOH status, and its path directly determines the
+the RUL prediction task, the average RMSEs were 19.34, 20.19, and
+                                                                                  magnitude of RUL given an end-of-life threshold. The absence of inte­
+24.21 cycles, respectively, with standard deviations of 11.60, 11.46, and
+                                                                                  grated models that simultaneously account for current health status and
+12.57 cycles. Interestingly, there was little difference in accuracy be­
+                                                                                  future degradation trajectories hinders the ability to capture coupled
+tween using 60 % and 100 % of the data, which diverges from the trends
+                                                                                  evolution of multi-dimensional health indicators throughout battery
+in the other tasks. This observation primarily stems from the inherent
+                                                                                  aging. This study proposes a unified framework to establish connections
+cell-to-cell variability of the RUL task, even under identical materials
+                                                                                  among these health management tasks, which can leverage accessible
+and operating conditions, degradation trajectories differ substantially
+                                                                                  data from BMS to realize joint prediction of battery SOH, degradation
+across cells. When training data are reduced, the retained subset may
+                                                                                  trajectory, and RUL via intra-cycle and inter-cycle enhanced machine
+occasionally share higher distributional similarity with the test set,
+                                                                                  learning, which is named as IC2ML in this paper.
+resulting in comparable or slightly better performance. However, for
+                                                                                      Comprehensive effectiveness evaluations were conducted on data­
+large-scale battery prognostics models encompassing a broader data
+                                                                                  sets of 120 batteries with 3 different materials, including NCA, NCA, and
+distribution, a reduction in training data is expected to lead to a clear
+                                                                                  NMCNCA. The proposed method achieves RMSE of 1.85 % for SOH
+and monotonic decline in prediction accuracy.
+                                                                                  estimation, 2.36 % for degradation trajectory prediction, and 23.90
+    This insight highlights the need for future work to explicitly model
+                                                                                  cycles for RUL prediction across the three key battery management
+inter-cell variability to enhance generalization across heterogeneous
+                                                                                  tasks. Thanks to the IC2ML, the required historical data can be reduced
+battery populations. Fig. 5c analyzes the impact of changes in different
+                                                                                  to only 5 cycles to make future predictions, with the RMSE of degra­
+hyperparameters on model accuracy, specifically examining three as­
+                                                                                  dation prediction being 1.87 %. Meanwhile, based on effective time-
+pects: the availability of historical data, the length of predicted future
+                                                                                  series modeling, the prediction length can be extended to a time hori­
+degradation trajectories, and the influence of different sampling in­
+                                                                                  zon of 100 cycles, with a RMSE of 1.77 % and a maximum RMSE lower
+tervals. The Base model uses 10 historical cycles with voltage samples in
+                                                                                  than 3.45 %. Comparisons with current experimental results of battery
+the 3.6-3.7 V range, while predicting the degradation trajectory, SOH,
+                                                                                  multi-health task prediction and single-task prediction models reflect
+and RUL for the next 50 cycles. It should be noted that only one variable
+                                                                                  the advantages of this hierarchical collaborative management. The
+was changed at a time to ensure the rigor of the experimental results. In
+                                                                                  generalization ability of the model was verified under the a simulated
+the capacity prediction task, changing the sampling voltage interval led
+                                                                                  data scarcity condition where the ratio of training data to test data was
+to a noticeable performance decline, with the average RMSE increasing
+                                                                                  2:3. The robustness of the model was confirmed through hyper­
+from 2.00 % to 2.65 %. This may be because the 3.7-3.8 V interval is
+                                                                                  parameter sensitivity analysis.
+closer to the incremental capacity (IC) peak, and the influence of the IC
+                                                                                      The method proposed in this paper breaks the fragmented situation
+peak on the capacity curve reduces the accuracy of SOH estimation.
+                                                                                  of various tasks in traditional health management and provides a more
+    Regarding the extension of the predicted degradation trajectory, no
+                                                                                  efficient, accurate, and comprehensive paradigm by integrating the hi­
+significant performance changes were observed, with all three tasks
+                                                                                  erarchical dependencies of multiple tasks. However, it should be
+showing slight improvements. Specifically, the RUL prediction error
+                                                                                  acknowledged that this work only conducts health management tasks
+decreased to 30.92 cycles, indicating the interrelatedness of health tasks,
+                                                                                  based on electrochemical characteristics, and domain knowledge has
+longer prediction lengths may enhance RUL prediction performance,
+                                                                                  not been incorporated into the modeling. As the next step, clear physical
+
+                                                                              9
+X. Huang et al.                                                                                                                   Journal of Power Sources 666 (2026) 239148
+
+
+knowledge can be integrated into the data-driven model to improve self-              Project of Shanxi Energy Internet Research Institute (No.
+interpretability [40], such as dQdV peaks [41], so as to establish                   SXEI2023A002), and the Meituan Scholar Program-International
+physics-informed dependencies between different health management                    Collaboration Project (No. 202209A).
+tasks. Random initial SOC is an important factor to consider in relation
+to the availability of field data. Although the effectiveness of the pro­            Appendix A. Supplementary data
+posed method has been validated under random 0.1 V voltage segments,
+different voltage intervals involve complex electrochemical reactions. In               Supplementary data to this article can be found online at https://doi.
+addition, LFP batteries exhibit a plateau effect in their charging curves.           org/10.1016/j.jpowsour.2025.239148.
+Future work could consider incorporating an SOC-aware mechanism
+during the feature extraction phase to better address battery degradation            Data availability
+under different SOC conditions. We also acknowledge that the current
+experiments do not cover extreme temperatures or high-rate conditions.                   The data and code for this work has been deposited at https://github.
+Future work will extend the operating range to further verify the model's            com/terencetaothucb/IC2ML-Unified-battery-health-prognostics-via-
+robustness and adaptability, as well as provide deeper insights into                 intra-and-inter-cycle-enhanced-machine-learning.
+temperature- and rate-dependent degradation behaviors. In addition, it
+is necessary to further analyze the uncertainty of future degradation                References
+trajectories under highly random and time-varying working conditions,
+especially to establish an evaluation system with statistical confidence              [1] P.M. Attia, A. Grover, N. Jin, K.A. Severson, T.M. Markov, Y.-H. Liao, M.H. Chen,
+                                                                                          B. Cheong, N. Perkins, Z. Yang, P.K. Herring, M. Aykol, S.J. Harris, R.D. Braatz,
+intervals, and simultaneously evaluate degradation mechanisms under                       S. Ermon, W.C. Chueh, Closed-loop optimization of fast-charging protocols for
+extreme or special operating conditions through physical modeling to                      batteries with machine learning, Nature 578 (2020) 397–402, https://doi.org/
+ensure the safe and long-term operation [4]. Future work will focus on                    10.1038/s41586-020-1994-5.
+                                                                                      [2] A. Innocenti, S. Beringer, S. Passerini, Cost and performance analysis as a valuable
+non-invasive in-situ sensing signals [42] (such as vibration sensing,                     tool for battery material research, Nat. Rev. Mater. 9 (2024) 347–357, https://doi.
+strain sensing, ultrasonic signals, and optical fiber sensing) to enhance                 org/10.1038/s41578-024-00657-2.
+the observation of internal states. Although existing methods have                    [3] J. Figgener, J. Van Ouwerkerk, D. Haberschusz, J. Bors, P. Woerner, M. Mennekes,
+                                                                                          F. Hildenbrand, C. Hecht, K.-P. Kairies, O. Wessels, D.U. Sauer, Multi-year field
+established a connection between the current health status of individual                  measurements of home storage systems and their use in capacity estimation, Nat.
+cells and their future degradation trajectories, enabling comprehensive                   Energy 9 (2024) 1438–1447, https://doi.org/10.1038/s41560-024-01620-9.
+lifecycle management, significant variations in degradation paths can                 [4] A. Geslin, L. Xu, D. Ganapathi, K. Moy, W.C. Chueh, S. Onori, Dynamic cycling
+                                                                                          enhances battery lifetime, Nat. Energy (2024), https://doi.org/10.1038/s41560-
+still be observed among batteries with identical materials and capacities
+                                                                                          024-01675-8.
+due to initial manufacturing differences and other factors. Future work               [5] F. Duffner, M. Wentker, M. Greenwood, J. Leker, Battery cost modeling: a review
+could incorporate contrastive learning and related techniques to                          and directions for future research, Renew. Sustain. Energy Rev. 127 (2020)
+explicitly model inter-cell [38] variability for more accurate prediction.                109872, https://doi.org/10.1016/j.rser.2020.109872.
+                                                                                      [6] Z. Wang, D. Shi, J. Zhao, Z. Chu, D. Guo, C. Eze, X. Qu, Y. Lian, A.F. Burke, Battery
+Meanwhile, in practical applications, there are inconsistencies among                     health diagnostics: bridging the gap between academia and industry,
+individual cells in the battery pack. These differences between cells will                eTransportation 19 (2024) 100309, https://doi.org/10.1016/j.etran.2023.100309.
+intensify with the increase of cycle times, thereby affecting the health              [7] S. Tao, M. Zhang, Z. Zhao, H. Li, R. Ma, Y. Che, X. Sun, L. Su, C. Sun, X. Chen,
+                                                                                          H. Chang, S. Zhou, Z. Li, H. Lin, Y. Liu, W. Yu, Z. Xu, H. Hao, S. Moura, X. Zhang,
+status and service life of the entire battery pack [36]. Future work can                  Y. Li, X. Hu, G. Zhou, Non-destructive degradation pattern decoupling for early
+construct a health management model that collaborates between indi­                       battery trajectory prediction via physics-informed learning, Energy Environ. Sci.
+vidual cells and the pack to achieve accurate evaluation and effective                    (2025), https://doi.org/10.1039/D4EE03839H, 10.1039.D4EE03839H.
+                                                                                      [8] H. Liu, C. Li, X. Hu, J. Li, K. Zhang, Y. Xie, R. Wu, Z. Song, Multi-modal framework
+management of the overall health status of the battery pack.                              for battery state of health evaluation using open-source electric vehicle data, Nat.
+     In brief, this study highlights the significant potential of the strate­             Commun. 16 (2025) 1137, https://doi.org/10.1038/s41467-025-56485-7.
+gical co-design of battery management algorithms using intra-cycle and                [9] S. Tao, H. Liu, C. Sun, H. Ji, G. Ji, Z. Han, R. Gao, J. Ma, R. Ma, Y. Chen, S. Fu,
+                                                                                          Y. Wang, Y. Sun, Y. Rong, X. Zhang, G. Zhou, H. Sun, Collaborative and privacy-
+inter-cycle battery degradation information using the proposed IC2ML                      preserving retired battery sorting for profitable direct recycling via federated
+framework, which can be applied to various battery health management                      machine learning, Nat. Commun. 14 (2023) 8032, https://doi.org/10.1038/
+tasks such as SOH, degradation trajectory, and RUL prediction and                         s41467-023-43883-y.
+                                                                                     [10] S. Tao, R. Ma, Z. Zhao, G. Ma, L. Su, H. Chang, Y. Chen, H. Liu, Z. Liang, T. Cao,
+beyond.
+                                                                                          H. Ji, Z. Han, M. Lu, H. Yang, Z. Wen, J. Yao, R. Yu, G. Wei, Y. Li, X. Zhang, T. Xu,
+                                                                                          G. Zhou, Generative learning assisted state-of-health estimation for sustainable
+CRediT authorship contribution statement                                                  battery recycling with random retirement conditions, Nat. Commun. 15 (2024)
+                                                                                          10154, https://doi.org/10.1038/s41467-024-54454-0.
+                                                                                     [11] J. Zhu, Y. Wang, Y. Huang, R. Bhushan Gopaluni, Y. Cao, M. Heere, M.
+    Xinghao Huang: Visualization, Validation, Software, Formal anal­                      J. Mühlbauer, L. Mereacre, H. Dai, X. Liu, A. Senyshyn, X. Wei, M. Knapp,
+ysis, Data curation, Conceptualization. Chen Liang: Visualization,                        H. Ehrenberg, Data-driven capacity estimation of commercial lithium-ion batteries
+Validation, Software, Conceptualization. Shengyu Tao: Visualization,                      from voltage relaxation, Nat. Commun. 13 (2022) 2261, https://doi.org/10.1038/
+                                                                                          s41467-022-29837-w.
+Validation, Supervision, Software, Conceptualization. Yunhong Che:                   [12] Y. Ren, X. Sun, P. Wolfram, S. Zhao, X. Tang, Y. Kang, D. Zhao, X. Zheng, Hidden
+Validation, Supervision. Ningyu Bian: Conceptualization. Jiale Zhang:                     delays of climate mitigation benefits in the race for electric vehicle deployment,
+Software, Conceptualization. Runhua Wang: Validation. Yuqi Zhang:                         Nat. Commun. 14 (2023) 3164, https://doi.org/10.1038/s41467-023-38182-5.
+                                                                                     [13] N. He, Q. Wang, Z. Lu, Y. Chai, F. Yang, Early prediction of battery lifetime based
+Writing – review & editing. Bizhong Xia: Validation, Funding acquisi­                     on graphical features and convolutional neural networks, Appl. Energy 353 (2024)
+tion. Xuan Zhang: Funding acquisition, Formal analysis.                                   122048, https://doi.org/10.1016/j.apenergy.2023.122048.
+                                                                                     [14] X. Han, L. Lu, Y. Zheng, X. Feng, Z. Li, J. Li, M. Ouyang, A review on the key issues
+                                                                                          of the lithium ion battery degradation among the whole life cycle, eTransportation
+Declaration of competing interest                                                         1 (2019) 100005, https://doi.org/10.1016/j.etran.2019.100005.
+                                                                                     [15] R. Xiong, Y. Sun, C. Wang, J. Tian, X. Chen, H. Li, Q. Zhang, A data-driven method
+    The authors declare that they have no known competing financial                       for extracting aging features to accurately predict the battery health, Energy
+                                                                                          Storage Mater. 57 (2023) 460–470, https://doi.org/10.1016/j.ensm.2023.02.034.
+interests or personal relationships that could have appeared to influence            [16] H. Tian, P. Qin, K. Li, Z. Zhao, A review of the state of health for lithium-ion
+the work reported in this paper.                                                          batteries: research status and suggestions, J. Clean. Prod. 261 (2020) 120813,
+                                                                                          https://doi.org/10.1016/j.jclepro.2020.120813.
+                                                                                     [17] X. Han, S. Mao, Y. Wang, Y. Lu, D. Wang, Y. Sun, Y. Zheng, X. Feng, L. Lu, J. Hua,
+Acknowledgments
+                                                                                          M. Ouyang, Manipulation of lithium dendrites based on electric field relaxation
+                                                                                          enabling safe and long-life lithium-ion batteries, Nat. Commun. 16 (2025), https://
+   This work was funded by the National Natural Science Foundation of                     doi.org/10.1038/s41467-025-58818-y.
+China (Grant No. 51877120), the Key Scientific Research Support
+
+                                                                                10
+X. Huang et al.                                                                                                                                     Journal of Power Sources 666 (2026) 239148
+
+[18] M.B. Pinson, M.Z. Bazant, Theory of SEI formation in rechargeable batteries:                         decomposition and fusion, J. Power Sources 642 (2025) 236939, https://doi.org/
+     capacity fade, accelerated aging and lifetime prediction, J. Electrochem. Soc. 160                   10.1016/j.jpowsour.2025.236939.
+     (2013) A243–A250, https://doi.org/10.1149/2.044302jes.                                          [31] J. Tian, R. Xiong, W. Shen, J. Lu, F. Sun, Flexible battery state of health and state of
+[19] S. Yang, C. Zhang, J. Jiang, W. Zhang, L. Zhang, Y. Wang, Review on state-of-                        charge estimation using partial charging data and deep learning, Energy Storage
+     health of lithium-ion batteries: characterizations, estimations and applications,                    Mater. 51 (2022) 372–381, https://doi.org/10.1016/j.ensm.2022.06.053.
+     J. Clean. Prod. 314 (2021) 128015, https://doi.org/10.1016/j.                                   [32] K. Zheng, J. Meng, Z. Yang, F. Zhou, K. Yang, Z. Song, Refined lithium-ion battery
+     jclepro.2021.128015.                                                                                 state of health estimation with charging segment adjustment, Appl. Energy 375
+[20] A. Fly, R. Chen, Rate dependency of incremental capacity analysis (dQ/dV) as a                       (2024) 124077, https://doi.org/10.1016/j.apenergy.2024.124077.
+     diagnostic tool for lithium-ion batteries, J. Energy Storage 29 (2020) 101329,                  [33] R. Liu, B. Jiang, A multi-time-resolution attention-based interaction network for
+     https://doi.org/10.1016/j.est.2020.101329.                                                           co-estimation of multiple battery states, Appl. Energy 381 (2025) 125097, https://
+[21] R. Xiong, P. Wang, Y. Jia, W. Shen, F. Sun, Multi-factor aging in Lithium iron                       doi.org/10.1016/j.apenergy.2024.125097.
+     phosphate batteries: mechanisms and insights, Appl. Energy 382 (2025) 125250,                   [34] G. Ma, S. Xu, B. Jiang, C. Cheng, X. Yang, Y. Shen, T. Yang, Y. Huang, H. Ding,
+     https://doi.org/10.1016/j.apenergy.2024.125250.                                                      Y. Yuan, Real-time personalized health status prediction of lithium-ion batteries
+[22] S. Tao, R. Guo, J. Lee, S. Moura, L.C. Casals, S. Jiang, J. Shi, S. Harris, T. Zhang, C.             using deep transfer learning, Energy Environ. Sci. 15 (2022) 4083–4094, https://
+     Y. Chung, G. Zhou, J. Tian, X. Zhang, Immediate remaining capacity estimation of                     doi.org/10.1039/D2EE01676A.
+     heterogeneous second-life lithium-ion batteries via deep generative transfer                    [35] R. Tan, X. Lu, M. Cheng, J. Li, J. Huang, T.-Y. Zhang, Forecasting battery
+     learning, Energy Environ. Sci. (2025), https://doi.org/10.1039/d5ee02217g.                           degradation trajectory under domain shift with domain generalization, Energy
+[23] J. Zhu, Data-Driven Capacity Estimation of Commercial lithium-ion Batteries from                     Storage Mater. 72 (2024) 103725, https://doi.org/10.1016/j.ensm.2024.103725.
+     Voltage Relaxation, (n.d.).                                                                     [36] Y. Che, X. Hu, X. Lin, J. Guo, R. Teodorescu, Health prognostics for lithium-ion
+[24] R. Ma, S. Tao, X. Sun, Y. Ren, C. Sun, G. Ji, J. Xu, X. Wang, X. Zhang, Q. Wu,                       batteries: mechanisms, methods, and prospects, Energy Environ. Sci. 16 (2023)
+     G. Zhou, Pathway decisions for reuse and recycling of retired lithium-ion batteries                  338–371, https://doi.org/10.1039/D2EE03019E.
+     considering economic and environmental functions, Nat. Commun. 15 (2024)                        [37] R. Tan, W. Hong, J. Tang, X. Lu, R. Ma, X. Zheng, J. Li, J. Huang, T.-Y. Zhang,
+     7641, https://doi.org/10.1038/s41467-024-52030-0.                                                    BatteryLife: a comprehensive dataset and benchmark for battery life prediction. htt
+[25] R. Li, N.D. Kirkaldy, F.F. Oehler, M. Marinescu, G.J. Offer, S.E.J. O'Kane, The                      ps://doi.org/10.48550/arXiv.2502.18807, 2025.
+     importance of degradation mode analysis in parameterising lifetime prediction                   [38] H. Zhang, Y. Li, S. Zheng, Z. Lu, X. Gui, W. Xu, J. Bian, Battery lifetime prediction
+     models of lithium-ion battery degradation, Nat. Commun. 16 (2025) 2776, https://                     across diverse ageing conditions with inter-cell deep learning, Nat. Mach. Intell.
+     doi.org/10.1038/s41467-025-57968-3.                                                                  (2025), https://doi.org/10.1038/s42256-024-00972-x.
+[26] C. Liang, S. Tao, X. Huang, Y. Wang, B. Xia, X. Zhang, Stochastic state of health               [39] C. Szegedy, Wei Liu, Yangqing Jia, P. Sermanet, S. Reed, D. Anguelov, D. Erhan,
+     estimation for lithium-ion batteries with automated feature fusion using quantum                     V. Vanhoucke, A. Rabinovich, Going deeper with convolutions, in: 2015 IEEE
+     convolutional neural network, J. Energy Chem. 106 (2025) 205–219, https://doi.                       Conference on Computer Vision and Pattern Recognition (CVPR), IEEE, Boston,
+     org/10.1016/j.jechem.2025.02.030.                                                                    MA, USA, 2015, pp. 1–9, https://doi.org/10.1109/cvpr.2015.7298594.
+[27] T. Desai, A.J. Gallo, R.M.G. Ferrari, Multi timescale battery modeling: integrating             [40] J. Wang, J. Purewal, P. Liu, J. Hicks-Garner, S. Soukazian, E. Sherman,
+     physics insights to data-driven model, Appl. Energy 393 (2025) 126040, https://                      A. Sorenson, L. Vu, H. Tataria, M.W. Verbrugge, Degradation of lithium ion
+     doi.org/10.1016/j.apenergy.2025.126040.                                                              batteries employing graphite negatives and nickel–cobalt–manganese oxide +
+[28] S. Shen, M. Sadoughi, M. Li, Z. Wang, C. Hu, Deep convolutional neural networks                      spinel manganese oxide positives: part 1, aging mechanisms and life estimation,
+     with ensemble learning and transfer learning for capacity estimation of lithium-ion                  J. Power Sources 269 (2014) 937–948, https://doi.org/10.1016/j.
+     batteries, Appl. Energy 260 (2020) 114296, https://doi.org/10.1016/j.                                jpowsour.2014.07.030.
+     apenergy.2019.114296.                                                                           [41] C.R. Birkl, M.R. Roberts, E. McTurk, P.G. Bruce, D.A. Howey, Degradation
+[29] J. Lu, R. Xiong, J. Tian, C. Wang, F. Sun, Deep learning to estimate lithium-ion                     diagnostics for lithium ion cells, J. Power Sources 341 (2017) 373–386, https://
+     battery state of health without additional degradation experiments, Nat. Commun.                     doi.org/10.1016/j.jpowsour.2016.12.011.
+     14 (2023) 2760, https://doi.org/10.1038/s41467-023-38458-w.                                     [42] J. Huang, S.T. Boles, J.-M. Tarascon, Sensing as the key to battery lifetime and
+[30] X. Huang, S. Tao, C. Liang, R. Ma, X. Wang, B. Xia, X. Zhang, Robust and                             sustainability, Nat. Sustain. 5 (2022) 194–204, https://doi.org/10.1038/s41893-
+     generalizable lithium-ion battery health estimation using multi-scale field data                     022-00859-y.
+
+
+
+
+                                                                                                11
+
